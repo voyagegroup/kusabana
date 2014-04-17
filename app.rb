@@ -11,9 +11,13 @@ require 'uri'
 
 class Memcached
   def get_or_set(key, expired)
+    begin
+      get(key)
+    rescue Memcached::NotFound
       value = yield
       set(key, value, expired)
       value
+    end
   end
 end
 
