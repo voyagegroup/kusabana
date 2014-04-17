@@ -9,6 +9,14 @@ require 'net/http'
 require 'rack/cors'
 require 'uri'
 
+class Memcached
+  def get_or_set(key, expired)
+      value = yield
+      set(key, value, expired)
+      value
+  end
+end
+
 class Kusabana < Sinatra::Base
   use Rack::Cors do
     allow do
@@ -54,28 +62,24 @@ class Kusabana < Sinatra::Base
       end
     rescue NoMethodError
     end
+
     key = "search.#{index[1..-1]}.#{@query.hash}"
-    begin
-      cache.get(key)
-    rescue Memcached::NotFound
-      results = Oj.dump(client.search(index: index, q: @query), mode: :compat)
-      cache.set(key, results, 100)
-      results
+    cache.get_or_set(key, 100) do
+      uri = URI.parse("http://#{settings.es[:url]}#{request.path_info}/")
+      http = Net::HTTP.new(uri.host)
+      http.post(uri.path, @query).body
     end
   end
 
   get '/_nodes' do
-    begin
-      cache.get('nodes')
-    rescue Memcached::NotFound
-      nodes = Oj.dump(client.nodes.info, mode: :compat)
-      cache.set('nodes', nodes, 60)
-      nodes
+    cache.get_or_set('nodes', 60) do
+      Oj.dump(client.nodes.info, mode: :compat)
     end
   end
 
   not_found do
-    url = "http://#{settings.es[:url] + request.path_info}"
-    Net::HTTP.send(request.request_method.downcase, URI.parse(url))
+    status 200
+    uri = URI.parse("http://#{settings.es[:url] + request.path_info}")
+    Net::HTTP.send(request.request_method.downcase, uri)
   end
 end
