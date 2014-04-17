@@ -3,6 +3,7 @@ source "https://rubygems.org"
 
 gem 'sinatra', '~> 1.4.5'
 gem 'sinatra-config-file'
+gem 'rack-cors', '~> 0.2.9'
 gem 'memcached', '~> 1.7.2'
 gem 'elasticsearch', '~> 1.0.1'
 gem 'oj'

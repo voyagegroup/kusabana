@@ -19,6 +19,7 @@ GEM
     multipart-post (2.0.0)
     oj (2.7.3)
     rack (1.5.2)
+    rack-cors (0.2.9)
     rack-protection (1.5.3)
       rack
     rack-test (0.6.2)
@@ -49,6 +50,7 @@ DEPENDENCIES
   elasticsearch (~> 1.0.1)
   memcached (~> 1.7.2)
   oj
+  rack-cors (~> 0.2.9)
   sinatra (~> 1.4.5)
   sinatra-config-file
   thin (~> 1.6.2)

@@ -1,2 +1,4 @@
 es:
   url: 'cosmi-search-m005.ec2:9200'
+cache:
+  url: 'localhost:11211'
