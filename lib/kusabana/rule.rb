@@ -8,11 +8,11 @@ module Kusabana
       @method = method
       @pattern = pattern
       @expired = expired
-			if block_given?
-				@modifier = -> (query) { yield query }
-		  else
-				@modifier = -> (query) { query }
-		  end
+      if block_given?
+        @modifier = -> (query) { yield query }
+      else
+        @modifier = -> (query) { query }
+      end
     end
 
     def match(method, path)
@@ -22,12 +22,12 @@ module Kusabana
     end
 
     def modify(query)
-			if query
-				modified = @modifier.call(Oj.load(query, mode: :compat))
-				[Oj.dump(modified, mode: :compat), "#{@method}::#{@path}::#{modified.hash}"]
-		  else
-				[nil, "#{@method}::#{@path}"]
-			end
+      if query
+        modified = @modifier.call(Oj.load(query, mode: :compat))
+        [Oj.dump(modified, mode: :compat), "#{@method}::#{@path}::#{modified.hash}"]
+      else
+        [nil, "#{@method}::#{@path}"]
+      end
     end
   end
 end
