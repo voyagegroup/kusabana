@@ -28,4 +28,6 @@ rules << Kusabana::Rule.new('POST', /\/\S+\/_search/, 60) do |query|
   query
 end
 
+rules << Kusabana::Rule.new('GET', /\/_nodes/, 60)
+
 Kusabana::Proxy.new(rules, config).start
