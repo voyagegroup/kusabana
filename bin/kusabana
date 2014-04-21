@@ -1,0 +1,90 @@
+#!/usr/bin/env ruby
+# coding: UTF-8
+lib = File.expand_path(File.dirname(__FILE__) + '/../lib')
+$LOAD_PATH.unshift(lib) if File.directory?(lib) && !$LOAD_PATH.include?(lib)
+
+require 'memcached'
+require 'em-proxy'
+require 'uuid'
+require 'http/parser'
+require 'kusabana'
+
+Proxy.start(:host => "0.0.0.0", :port => 9292) do |conn|
+  @cache = Memcached.new("localhost:11211")
+  @sessions = {}
+  
+  # Rules
+  @rules = []
+  @rules << Kusabana::Rule.new('POST', /\/\S+\/_search/, 60) do |query|
+    begin
+      query['facets']['terms']['facet_filter']['fquery']['query']['filtered']['filter']['bool']['must'].each do |filter|
+        if range = filter.fetch('range', nil)
+          if timestamp = range.fetch('@timestamp', nil)
+            timestamp['from'] = timestamp['from'] / 100 * 100
+            timestamp['to'] = timestamp['to'] / 100 * 100
+          end
+        end
+      end
+    rescue NoMethodError
+    end
+    query
+  end
+
+  # Request
+  @req_buffer = ''
+
+  @req_parser = HTTP::Parser.new
+  @req_parser.on_body = -> (body) do
+    @body = body
+  end
+
+  @req_parser.on_message_complete = -> do 
+    session = UUID.generate
+    s = conn.server session, :host => 'cosmi-search-m005.ec2', :port => 9200
+    req = -> do
+      @rules.each do |rule|
+        if rule.match(@req_parser.http_method,@req_parser.request_url)
+          modified, hash = rule.modify(@body)
+          if res = @cache.get_or_nil(hash)
+            conn.send_data res
+            return nil
+          else
+            @sessions[session] = {rule: rule, hash: hash}
+            return @req_buffer.gsub(/\r\n\r\n.+/m, "\r\n\r\n#{modified}")
+          end
+        end
+      end
+      @req_buffer
+    end
+    
+    if req = req.call
+      s.send_data req
+    end
+    @req_buffer.clear
+  end
+
+  conn.on_data do |data|
+    @req_buffer << data
+    @req_parser << data
+    :async
+  end
+
+
+  # Response
+  @res_buffer = ''
+
+  @res_parser = HTTP::Parser.new
+  @res_parser.on_message_complete = -> do
+    @cache.set(@session[:hash], @res_buffer, @session[:rule].expired)
+    @res_buffer.clear
+    @sessions.delete_if {|k, v| v == @session }
+  end
+
+  conn.on_response do |backend, resp|
+    if @session = @sessions[backend]
+      @res_buffer << resp
+      @res_parser << resp
+    end
+    resp
+  end
+end

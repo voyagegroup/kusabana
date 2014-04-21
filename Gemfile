@@ -1,13 +1,8 @@
 # A sample Gemfile
 source "https://rubygems.org"
 
-gem 'sinatra', '~> 1.4.5'
-gem 'sinatra-config-file'
-gem 'rack-cors', '~> 0.2.9'
 gem 'memcached', '~> 1.7.2'
-gem 'elasticsearch', '~> 1.0.1'
-gem 'oj'
-
-group :development do
-  gem 'thin', '~> 1.6.2'
-end
+gem 'em-proxy', '~> 0.1.8'
+gem 'oj', '~> 2.7.3'
+gem 'http_parser.rb', '~> 0.6.0'
+gem 'uuid'
