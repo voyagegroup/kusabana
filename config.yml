@@ -1,4 +1,8 @@
+proxy:
+  host: '0.0.0.0'
+  port: 9292
 es:
-  url: 'cosmi-search-m005.ec2:9200'
+  host: 'cosmi-search-m005.ec2'
+  port: 9200
 cache:
   url: 'localhost:11211'
