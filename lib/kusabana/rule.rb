@@ -8,11 +8,11 @@ module Kusabana
       @method = method
       @pattern = pattern
       @expired = expired
-      if block_given?
-        @modifier = -> (query) { yield query }
-      else
-        @modifier = -> (query) { query }
-      end
+      @modifiers = []
+    end
+
+    def add_modifier(modifier)
+      @modifiers << modifier
     end
 
     def match(method, path)
@@ -23,11 +23,46 @@ module Kusabana
 
     def modify(query)
       if query
-        modified = @modifier.call(Oj.load(query, mode: :compat))
+        modified = scan_query(Oj.load(query, mode: :compat))
         [Oj.dump(modified, mode: :compat), "#{@method}::#{@path}::#{modified.hash}"]
       else
         [nil, "#{@method}::#{@path}"]
       end
+    end
+
+    private
+    def scan_query(query)
+      case query
+      when ::Hash
+        query.inject({}) do |hash, (key, value)|
+          value = -> do
+            @modifiers.each do |mod|
+              return mod.modify(value) if mod.pattern =~ key
+            end
+            scan_query(value)
+          end.call
+          hash[key] = value
+          hash
+        end
+      when ::Array
+        query.map do |value|
+          scan_query(value)
+        end
+      else
+        query
+      end
+    end
+  end
+
+  class QueryModifier
+    attr_reader :pattern
+    def initialize(pattern, &block)
+      @pattern = pattern
+      @block = block
+    end
+
+    def modify(query)
+      @block.call(query)
     end
   end
 end
