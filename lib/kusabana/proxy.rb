@@ -1,3 +1,4 @@
+#coding: utf-8
 require 'memcached'
 require 'em-proxy'
 require 'uuid'
@@ -28,7 +29,7 @@ module Kusabana
         EM::start_server(@config['proxy']['host'], @config['proxy']['port'], EM::ProxyServer::Connection, @config) do |conn|
 
           # Request
-          @req_parser.on_body = on_parse_pequest_body
+          @req_parser.on_body = on_parse_request_body
           @req_parser.on_message_complete = on_parse_request(conn)
           conn.on_data(&on_data)
 
@@ -49,7 +50,7 @@ module Kusabana
       end
     end
 
-    def on_parse_pequest_body
+    def on_parse_request_body
       -> (chunk) do
         @req_body << chunk
       end
