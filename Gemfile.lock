@@ -5,6 +5,7 @@ GEM
       eventmachine
     eventmachine (1.0.3)
     http_parser.rb (0.6.0)
+    ltsv-logger (0.0.2)
     macaddr (1.7.1)
       systemu (~> 2.6.2)
     memcached (1.7.2)
@@ -19,6 +20,7 @@ PLATFORMS
 DEPENDENCIES
   em-proxy (~> 0.1.8)
   http_parser.rb (~> 0.6.0)
+  ltsv-logger (~> 0.0.2)
   memcached (~> 1.7.2)
   oj (~> 2.7.3)
-  uuid
+  uuid (~> 2.3.7)

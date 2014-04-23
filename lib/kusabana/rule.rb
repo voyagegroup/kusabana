@@ -22,12 +22,8 @@ module Kusabana
     end
 
     def modify(query)
-      if query
-        modified = scan_query(Oj.load(query, mode: :compat))
-        [Oj.dump(modified, mode: :compat), "#{@method}::#{@path}::#{modified.hash}"]
-      else
-        [nil, "#{@method}::#{@path}"]
-      end
+      modified = scan_query(Oj.load(query, mode: :compat))
+      [Oj.dump(modified, mode: :compat), "#{@method}::#{@path}::#{modified.hash}"]
     end
 
     private
