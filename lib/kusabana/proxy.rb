@@ -63,7 +63,7 @@ module Kusabana
         req = -> do
           @rules.each do |rule|
             if rule.match(@req_parser.http_method,@req_parser.request_url)
-              @logger.info(type: 'req', method: @req_parser.http_method, path: @req_parser.request_url, remote: @req_parser.headers['Host'] ,match: true, session: session)
+              @logger.info(type: 'req', method: @req_parser.http_method, path: @req_parser.request_url, match: true, session: session)
               modified, hash = rule.modify(@req_body)
               if res = @cache.get_or_nil(hash)
                 conn.send_data res
@@ -74,7 +74,7 @@ module Kusabana
               end
             end
           end
-          @logger.info(type: 'req', method: @req_parser.http_method, path: @req_parser.request_url, remote: @req_parser.headers['Host'], match: false, session: session)
+          @logger.info(type: 'req', method: @req_parser.http_method, path: @req_parser.request_url, match: false, session: session)
           @req_buffer
         end
         
