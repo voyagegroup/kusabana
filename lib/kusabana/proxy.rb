@@ -63,6 +63,7 @@ module Kusabana
     def on_parse_request(conn)
       -> do
         session = UUID.generate :compact
+        @sessions[session] = {start: Time.new}
         s = conn.server session, :host => @config['es']['host'], :port => @config['es']['port']
         req = -> do
           @rules.each do |rule|
@@ -73,7 +74,7 @@ module Kusabana
                 conn.send_data res
                 return nil
               else
-                @sessions[session] = {rule: rule, hash: hash}
+                @sessions[session].merge!(rule: rule, hash: hash)
                 return @req_buffer.gsub(/\r\n\r\n.+/m, "\r\n\r\n#{modified}")
               end
             end
@@ -85,7 +86,7 @@ module Kusabana
         if req = req.call
           s.send_data req
         else
-          @logger.info(type: 'res', method: @req_parser.http_method, path: @req_parser.request_url, cache: 'use', session: session)
+          @logger.info(type: 'res', method: @req_parser.http_method, path: @req_parser.request_url, cache: 'use', session: session, took: Time.new - @sessions[session][:start])
         end
         @req_buffer.clear
         @req_body.clear
@@ -95,12 +96,13 @@ module Kusabana
     def on_parse_response
       -> do
         caching = 'no'
-        if s = @sessions[@session]
-          @cache.set(s[:hash], @res_buffer, s[:rule].expired)
+        s = @sessions[@session]
+        if hash = s[:hash]
+          @cache.set(hash, @res_buffer, s[:rule].expired)
           caching = 'store'
         end
-        @logger.info(type: 'res', method: @req_parser.http_method, path: @req_parser.request_url, cache: caching, session: @session)
-        @sessions.delete_if {|k, v| v == @session }
+        @logger.info(type: 'res', method: @req_parser.http_method, path: @req_parser.request_url, cache: caching, session: @session, took: Time.new - s[:start])
+        @sessions.delete(s)
         @res_buffer.clear
       end
     end
