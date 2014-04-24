@@ -20,11 +20,15 @@ module Kusabana
       @res_parser = HTTP::Parser.new
       @res_buffer = ''
 
-      LTSV::Logger.open(config['log'] || STDOUT)
+      LTSV::Logger.open(config['proxy']['output'] || STDOUT)
       @logger = LTSV.logger
     end
 
     def start
+      if @config['proxy']['daemonize']
+        Process.daemon(true, true)
+        open(@config['proxy']['pid'] || 'kusabana.pid', 'w') {|f| f << Process.pid }
+      end
       EM.run do
         EM::start_server(@config['proxy']['host'], @config['proxy']['port'], EM::ProxyServer::Connection, @config) do |conn|
 

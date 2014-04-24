@@ -1,6 +1,7 @@
 proxy:
   host: '0.0.0.0'
   port: 9292
+  daemonize: false
 es:
   host: 'cosmi-search-m005.ec2'
   port: 9200

@@ -8,17 +8,10 @@ describe Kusabana::Proxy do
 
   context '#on_data' do
     let(:request) { "GET / HTTP/1.1\r\n\r\n" }
+    before { proxy.send(:on_data).call(request) }
 
-    context 'when called' do
-      before { proxy.send(:on_data).call(request) }
-
-      it { expect(proxy.instance_variable_get(:@req_buffer)).to eq(request) }
-      it { expect(proxy.instance_variable_get(:@req_parser).http_method).to eq('GET') }
-    end
-
-    context 'when set for callback' do
-      let(:conn) { EM::ProxyServer::Connection }
-    end
+    it { expect(proxy.instance_variable_get(:@req_buffer)).to eq(request) }
+    it { expect(proxy.instance_variable_get(:@req_parser).http_method).to eq('GET') }
   end
 
   context '#on_parse_request_body' do
@@ -49,7 +42,7 @@ describe Kusabana::Proxy do
     after { parser << request }
     let(:request) { "GET / HTTP/1.1\r\n\r\n" }
 
-    it { expect(callback).to receive(:call).and_return }
+    it { expect(callback).to receive(:call) }
   end
 
   context '#on_parse_request', valid: true do
@@ -59,7 +52,7 @@ describe Kusabana::Proxy do
     let(:response) { "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\nhoge" }
     after { parser << response }
 
-    it { expect(callback).to receive(:call).and_return }
+    it { expect(callback).to receive(:call) }
   end
 
   context '#on_response' do
