@@ -26,7 +26,6 @@ module Kusabana
       [Oj.dump(modified, mode: :compat), "#{@method}::#{@path}::#{modified.hash}"]
     end
 
-    private
     def scan_query(query)
       case query
       when ::Hash

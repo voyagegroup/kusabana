@@ -7,13 +7,11 @@ require 'ltsv-logger'
 
 module Kusabana
   class Proxy
-    attr_accessor :logger, :cache
-    attr_reader :rules, :config
     def initialize(rules, config)
       @rules = rules
       @config = config
-      @cache = Memcached.new(@config['cache']['url'])
 
+      @cache = Memcached.new(@config['cache']['url'])
       LTSV::Logger.open(config['proxy']['output'] || STDOUT)
       @logger = LTSV.logger
     end
@@ -26,9 +24,8 @@ module Kusabana
         trap("TERM") { stop }
         trap("INT") { stop }
 
-        EM::start_server(@config['proxy']['host'], @config['proxy']['port'], Kusabana::Connection, @config) do |conn|
-          conn.proxy = self
-        end
+        option = {cache: @cache, logger: @logger, rules: @rules, es: @config['es']}
+        EM::start_server(@config['proxy']['host'], @config['proxy']['port'], Kusabana::Connection, option)
         open(@config['proxy']['pid'] || 'kusabana.pid', 'w') {|f| f << Process.pid } if @config['proxy']['daemonize']
       end
     end
