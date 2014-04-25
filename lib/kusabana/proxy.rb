@@ -19,10 +19,7 @@ module Kusabana
     end
 
     def start
-      if @config['proxy']['daemonize']
-        Process.daemon(true, true)
-        open(@config['proxy']['pid'] || 'kusabana.pid', 'w') {|f| f << Process.pid }
-      end
+      Process.daemon(true, true) if @config['proxy']['daemonize']
       EM.epoll
 
       EM.run do
@@ -32,6 +29,7 @@ module Kusabana
         EM::start_server(@config['proxy']['host'], @config['proxy']['port'], Kusabana::Connection, @config) do |conn|
           conn.proxy = self
         end
+        open(@config['proxy']['pid'] || 'kusabana.pid', 'w') {|f| f << Process.pid } if @config['proxy']['daemonize']
       end
     end
 
