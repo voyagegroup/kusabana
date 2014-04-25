@@ -3,7 +3,8 @@ require 'uuid'
 module Kusabana
   class Connection < EM::ProxyServer::Connection
     attr_accessor :proxy
-    def initialize(options)
+    def initialize(config)
+      @config = config
       @on_data = on_data
       @on_response = on_response
 
@@ -14,10 +15,11 @@ module Kusabana
       @req_parser.on_message_complete = on_parse_request
       @sessions = {}
 
-      super(options)
+      super(config)
     end
 
     # Callbacks
+    private
     def on_data
       -> (data) do
         @req_buffer << data
@@ -58,7 +60,7 @@ module Kusabana
         end
         
         if req = req.call
-          s = server uuid, :host => @proxy.config['es']['host'], :port => @proxy.config['es']['port']
+          s = server uuid, :host => @config['es']['host'], :port => @config['es']['port']
           s.send_data req
         else
           @proxy.logger.info(type: 'res', method: @req_parser.http_method, path: @req_parser.request_url, cache: 'use', session: uuid, took: Time.new - @sessions[uuid][:start])
