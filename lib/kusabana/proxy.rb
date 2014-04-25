@@ -7,15 +7,12 @@ require 'ltsv-logger'
 
 module Kusabana
   class Proxy
+    attr_accessor :logger, :cache
+    attr_reader :rules, :config
     def initialize(rules, config)
       @rules = rules
       @config = config
       @cache = Memcached.new(@config['cache']['url'])
-      @sessions = {}
-
-      @req_parser = HTTP::Parser.new
-      @req_buffer = ''
-      @req_body = ''
 
       LTSV::Logger.open(config['proxy']['output'] || STDOUT)
       @logger = LTSV.logger
@@ -32,95 +29,14 @@ module Kusabana
         trap("TERM") { stop }
         trap("INT") { stop }
 
-        EM::start_server(@config['proxy']['host'], @config['proxy']['port'], EM::ProxyServer::Connection, @config) do |conn|
-
-          # Request
-          @req_parser.on_body = on_parse_request_body
-          @req_parser.on_message_complete = on_parse_request(conn)
-          conn.on_data(&on_data)
-
-          # Response
-          conn.on_response(&on_response)
+        EM::start_server(@config['proxy']['host'], @config['proxy']['port'], Kusabana::Connection, @config) do |conn|
+          conn.proxy = self
         end
       end
     end
 
     def stop
       EM.stop
-    end
-
-    # Callbacks
-    private
-    def on_data
-      -> (data) do
-        @req_buffer << data
-        @req_parser << data
-        :async
-      end
-    end
-
-    def on_parse_request_body
-      -> (chunk) do
-        @req_body << chunk
-      end
-    end
-
-    def on_parse_request(conn)
-      -> do
-        uuid = UUID.generate :compact
-        res_parser = HTTP::Parser.new
-        res_parser.on_message_complete = on_parse_response(uuid)
-        res_buffer = ''
-        @sessions[uuid] = {start: Time.new, res_parser: res_parser, res_buffer: res_buffer}
-        req = -> do
-          @rules.each do |rule|
-            if rule.match(@req_parser.http_method,@req_parser.request_url)
-              @logger.info(type: 'req', method: @req_parser.http_method, path: @req_parser.request_url, match: true, session: uuid)
-              modified, hash = rule.modify(@req_body)
-              if res = @cache.get_or_nil(hash)
-                conn.send_data res
-                return nil
-              else
-                @sessions[uuid].merge!(rule: rule, hash: hash)
-                return @req_buffer.gsub(/\r\n\r\n.+/m, "\r\n\r\n#{modified}")
-              end
-            end
-          end
-          @logger.info(type: 'req', method: @req_parser.http_method, path: @req_parser.request_url, match: false, session: uuid)
-          @req_buffer
-        end
-        
-        if req = req.call
-          s = conn.server uuid, :host => @config['es']['host'], :port => @config['es']['port']
-          s.send_data req
-        else
-          @logger.info(type: 'res', method: @req_parser.http_method, path: @req_parser.request_url, cache: 'use', session: uuid, took: Time.new - @sessions[uuid][:start])
-        end
-        @req_buffer.clear
-        @req_body.clear
-      end
-    end
-
-    def on_parse_response(uuid)
-      -> do
-        caching = 'no'
-        s = @sessions[uuid]
-        if hash = s[:hash]
-          @cache.set(hash, s[:res_buffer], s[:rule].expired)
-          caching = 'store'
-        end
-        @logger.info(type: 'res', method: @req_parser.http_method, path: @req_parser.request_url, cache: caching, session: uuid, took: Time.new - s[:start])
-        @sessions.delete(uuid)
-      end
-    end
-
-    def on_response
-      -> (backend, resp) do
-        s = @sessions[backend]
-        s[:res_buffer] << resp
-        s[:res_parser] << resp
-        resp
-      end
     end
   end
 end
