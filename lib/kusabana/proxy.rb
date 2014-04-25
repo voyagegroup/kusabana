@@ -29,7 +29,12 @@ module Kusabana
         Process.daemon(true, true)
         open(@config['proxy']['pid'] || 'kusabana.pid', 'w') {|f| f << Process.pid }
       end
+      EM.epoll
+
       EM.run do
+        trap("TERM") { stop }
+        trap("INT") { stop }
+
         EM::start_server(@config['proxy']['host'], @config['proxy']['port'], EM::ProxyServer::Connection, @config) do |conn|
 
           # Request
@@ -42,6 +47,10 @@ module Kusabana
           conn.on_response(&on_response)
         end
       end
+    end
+
+    def stop
+      EM.stop
     end
 
     # Callbacks
@@ -64,7 +73,6 @@ module Kusabana
       -> do
         session = UUID.generate :compact
         @sessions[session] = {start: Time.new}
-        s = conn.server session, :host => @config['es']['host'], :port => @config['es']['port']
         req = -> do
           @rules.each do |rule|
             if rule.match(@req_parser.http_method,@req_parser.request_url)
@@ -84,6 +92,7 @@ module Kusabana
         end
         
         if req = req.call
+          s = conn.server session, :host => @config['es']['host'], :port => @config['es']['port']
           s.send_data req
         else
           @logger.info(type: 'res', method: @req_parser.http_method, path: @req_parser.request_url, cache: 'use', session: session, took: Time.new - @sessions[session][:start])
@@ -102,7 +111,7 @@ module Kusabana
           caching = 'store'
         end
         @logger.info(type: 'res', method: @req_parser.http_method, path: @req_parser.request_url, cache: caching, session: @session, took: Time.new - s[:start])
-        @sessions.delete(s)
+        @sessions.delete(@session)
         @res_buffer.clear
       end
     end
