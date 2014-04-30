@@ -3,3 +3,4 @@ log
 config.yml
 .*
 !.git
+.elasticbeanstalk/
