@@ -6,7 +6,6 @@ describe Kusabana::Connection do
   let(:rules) { [] }
   let(:proxy) { Kusabana::Proxy.new(rules, config) }
   let(:connection) { Kusabana::Connection.new({}, config) }
-  before { connection.proxy = proxy }
 
   context '#on_data' do
     let(:request) { "GET / HTTP/1.1\r\n\r\n" }
