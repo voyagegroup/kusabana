@@ -1,19 +1,17 @@
 kusabana
 ========
-
 test proxy for Elasticsearch
 
-### require
-memcached
+### Require
+memcached  
+ruby => 2.1.1 (maybe work also in ruby => 2.0)
 
-### launch
-Edit `config.yml`. Then,
+### Config
+See and Edit and Rename `config.yml.sample`.
 
-    bundle install
-    bundle exec bin/kusabana
+### Launch
+    make install
+    bundle exec rake start
 
-or
-
-    gem build kusabana.gemspec
-    gem install kusabana-*.gem
-    kusabana
+### Build Gem
+    bundle exec rake build
