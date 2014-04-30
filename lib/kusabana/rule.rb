@@ -26,7 +26,7 @@ module Kusabana
       [Oj.dump(modified, mode: :compat), "#{@method}::#{@path}::#{modified.hash}"]
     end
 
-    private
+    # Scan and Match with QueryModifier.pattern for query parsed from JSON
     def scan_query(query)
       case query
       when ::Hash

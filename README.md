@@ -7,6 +7,8 @@ test proxy for Elasticsearch
 memcached
 
 ### launch
+Edit `config.yml`. Then,
+
     bundle install
     bundle exec bin/kusabana
 
