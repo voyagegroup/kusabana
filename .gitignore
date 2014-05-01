@@ -4,4 +4,3 @@ config.yml
 .*
 !.git
 .elasticbeanstalk/
-!.ebextentions
