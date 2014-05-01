@@ -83,8 +83,8 @@ module Kusabana
         caching = 'no'
         s = @sessions[session_name]
         if hash = s[:hash]
-          @cache.set(hash, s[:res_buffer], s[:rule].expired)
-          caching = 'store'
+          store = @cache.set(hash, s[:res_buffer], s[:rule].expired)
+          caching = (store)? 'store': 'error'
         end
         @logger.info(type: 'res', method: @req_parser.http_method, path: @req_parser.request_url, cache: caching, session: session_name, took: Time.new - s[:start])
         send_data s[:res_buffer]
