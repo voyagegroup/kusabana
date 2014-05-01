@@ -1,3 +1,7 @@
 Gemfile.lock
 log
 config.yml
+.*
+!.git
+.elasticbeanstalk/
+!.ebextentions
