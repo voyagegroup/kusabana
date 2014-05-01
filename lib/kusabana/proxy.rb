@@ -11,7 +11,7 @@ module Kusabana
       @rules = rules
       @config = config
 
-      @cache = Memcached.new(@config['cache']['url'])
+      @cache = Kusabana::Cache.new(@config['cache']['url'])
       LTSV::Logger.open(config['proxy']['output'] || STDOUT)
       @logger = LTSV.logger
     end
