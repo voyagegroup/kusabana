@@ -19,7 +19,7 @@ You can also build Docker image
     
     rake docker:build
     rake docker:run
-or
+    # or
     rake docker:start
 
 When it's first build, it takes big time because of buliding ruby environment.
