@@ -24,10 +24,10 @@ task :start do
   if config['proxy']['daemonize']
     pid = get_pid(config)
     if pid && alive?(pid.to_i)
-      fail("Kusabana is already running")
+      fail('Kusabana is already running')
     end
   end
-  sh "bundle exec bin/kusabana"
+  sh 'bundle exec bin/kusabana'
 end
 
 desc 'Stop Kusabana running as a daemon'
@@ -37,3 +37,8 @@ end
 
 desc 'Restart Kusabana running as a daemon'
 task :restart => [:stop, :start]
+
+desc 'Run RSpec'
+task :test do
+  sh 'bundle exec rspec'
+end
