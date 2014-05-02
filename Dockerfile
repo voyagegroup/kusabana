@@ -29,4 +29,4 @@ RUN mv Gemfile.lock.tmp Gemfile.lock
 
 EXPOSE 9292
 ENTRYPOINT ["bundle", "exec", "rake"]
-CMD ["bundle", "exec", "rake", "start"]
+CMD ["start"]
