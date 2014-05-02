@@ -28,4 +28,5 @@ ADD . /kusabana/
 RUN mv Gemfile.lock.tmp Gemfile.lock
 
 EXPOSE 9292
-CMD ["bundle", "exec", "rake"]
+ENTRYPOINT ["bundle", "exec", "rake"]
+CMD ["bundle", "exec", "rake", "start"]
