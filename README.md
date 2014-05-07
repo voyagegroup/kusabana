@@ -17,7 +17,6 @@ See and Edit and Rename `config.yml.sample`.
 #### Docker
 You can also build Docker image
     
-    rake docker:build
     rake docker:run
     # or
     rake docker:start

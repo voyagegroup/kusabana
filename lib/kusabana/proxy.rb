@@ -3,7 +3,6 @@ require 'memcached'
 require 'em-proxy'
 require 'uuid'
 require 'http/parser'
-require 'ltsv-logger'
 
 module Kusabana
   class Proxy
@@ -12,8 +11,7 @@ module Kusabana
       @config = config
 
       @cache = Kusabana::Cache.new(@config['cache']['url'])
-      LTSV::Logger.open(config['proxy']['output'] || STDOUT)
-      @logger = LTSV.logger
+      @logger = Kusabana::Logger.new(config['proxy']['output'] || STDOUT, es: @config['es']['output'])
     end
 
     def start
@@ -24,7 +22,7 @@ module Kusabana
         trap("TERM") { stop }
         trap("INT") { stop }
 
-        option = {cache: @cache, logger: @logger, rules: @rules, es: @config['es']}
+        option = {cache: @cache, logger: @logger, rules: @rules, es: @config['es']['remote']}
         EM::start_server(@config['proxy']['host'], @config['proxy']['port'], Kusabana::Connection, option)
         open(@config['proxy']['pid'] || 'kusabana.pid', 'w') {|f| f << Process.pid } if @config['proxy']['daemonize']
       end

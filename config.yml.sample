@@ -5,7 +5,11 @@ proxy:
   # output: 'log/kusabana.log' 
   # pid: 'log/kusabana.pid'
 es:
-  host: 'localhost'
-  port: 9200
+  remote:
+    host: 'localhost'
+    port: 9200
+  # output:
+    # host: 'localhost'
+    # port: 9200
 cache:
   url: 'localhost:11211'

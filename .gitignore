@@ -4,3 +4,4 @@ config.yml
 .*
 !.git
 .elasticbeanstalk/
+docker.id
