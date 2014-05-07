@@ -33,7 +33,9 @@ end
 desc 'Stop Kusabana running as a daemon'
 task :stop do
   pid = get_pid(config)
-  sh "kill #{pid}" if pid
+  if pid
+    sh "kill #{pid}" if alive?(pid)
+  end
 end
 
 desc 'Restart Kusabana running as a daemon'
