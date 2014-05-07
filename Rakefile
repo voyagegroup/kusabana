@@ -68,12 +68,12 @@ namespace :docker do
   end
 
   desc 'Run Docker container'
-  task :run do
+  task :run => 'docker:build' do
     sh 'docker run -p 9292:9292 -t -i --rm kusabana'
   end
 
   desc 'Start Docker container'
-  task :start do
+  task :start => 'docker:build' do
     if last_id = get_container_id
       fail('Container is already running') if container_alive?(last_id)
     end
@@ -81,7 +81,7 @@ namespace :docker do
   end
 
   desc 'Stop Docker container running as a daemon'
-  task :stop do
+  task :stop => 'docker:build' do
     if last_id = get_container_id
       sh "docker rm -f #{last_id}" if container_alive?(last_id)
     else
@@ -93,7 +93,7 @@ namespace :docker do
   task :restart => [:stop, :start]
 
   desc 'Run RSpec within Docker container'
-  task :test do
+  task :test => 'docker:build' do
     sh 'docker run -p 9292:9292 --rm kusabana test'
   end
 end

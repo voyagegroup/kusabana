@@ -6,7 +6,7 @@ gem 'em-proxy', '~> 0.1.8'
 gem 'oj', '~> 2.9.0'
 gem 'http_parser.rb', '~> 0.6.0'
 gem 'uuid', '~> 2.3.7'
-gem 'ltsv-logger', '~> 0.0.2'
+gem 'elasticsearch'
 
 group :test do
   gem 'rspec', '~> 2.14.1'
