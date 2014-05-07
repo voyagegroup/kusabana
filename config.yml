@@ -1,0 +1,17 @@
+proxy:
+  host: '0.0.0.0'
+  port: 9292
+  daemonize: true
+  output: 'log/kusabana.log' 
+  pid: 'log/kusabana.pid'
+es:
+  remote:
+    host: 'cosmi-search-m001'
+    port: 9200
+  output: 
+    index: 'kusabana-log-1'
+    hosts: 
+    - host: 'cosmi-search-m001'
+      port: 9200
+cache:
+  url: 'cosmi-kusabana-mem01.yndvsg.0001.apne1.cache.amazonaws.com:11211'
