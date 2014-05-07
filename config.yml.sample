@@ -2,14 +2,14 @@ proxy:
   host: '0.0.0.0'
   port: 9292
   daemonize: false
-  # output: 'log/kusabana.log' 
-  # pid: 'log/kusabana.pid'
+# output: 'log/kusabana.log' 
+# pid: 'log/kusabana.pid'
 es:
   remote:
     host: 'localhost'
     port: 9200
-  # output:
-    # host: 'localhost'
-    # port: 9200
+# output:
+#   host: 'localhost'
+#   port: 9200
 cache:
   url: 'localhost:11211'
