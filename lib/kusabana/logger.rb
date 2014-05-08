@@ -29,12 +29,6 @@ module Kusabana
       info(args)
     end
     
-    def stat(rules)
-      rules.each do
-        p rules.expire
-      end
-    end
-
     class LogFormatter < ::Logger::Formatter
       def initialize(es, index)
         @es = es
