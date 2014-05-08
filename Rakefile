@@ -83,7 +83,7 @@ namespace :docker do
   end
 
   desc 'Stop Docker container running as a daemon'
-  task :stop => 'docker:build' do
+  task :stop do
     if last_id = get_container_id
       sh "docker rm -f #{last_id}" if container_alive?(last_id)
     else

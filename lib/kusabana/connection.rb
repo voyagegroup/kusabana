@@ -48,31 +48,30 @@ module Kusabana
         res_parser.on_message_complete = on_parse_response(session_name)
         res_buffer = ''
         @sessions[session_name] = {start: Time.new, res_parser: res_parser, res_buffer: res_buffer}
-        req = -> do
+
+        body, match = -> do
           @rules.each do |rule|
             if rule.match(@req_parser.http_method,@req_parser.request_url)
-              @logger.info(type: 'req', method: @req_parser.http_method, path: @req_parser.request_url, match: true, session: session_name)
-              modified, hash = rule.modify(@req_body)
-              if res = @cache.get_or_nil(hash)
-                send_data res
-                return nil
-              else
-                @sessions[session_name].merge!(rule: rule, hash: hash)
-                return @req_buffer.gsub(/\r\n\r\n.+/m, "\r\n\r\n#{modified}")
-              end
+              @sessions[session_name].merge!(rule: rule, cache: true)
+              return [rule.modify(@req_body), true]
             end
           end
-          @logger.info(type: 'req', method: @req_parser.http_method, path: @req_parser.request_url, match: false, session: session_name)
-          @req_buffer
-        end
+          [@req_body, false]
+        end.call
+
+        cache_key = @req_parser.cache_key(body)
+        @logger.req(method: @req_parser.http_method, path: @req_parser.request_url, match: match, session: session_name)
         
-        if req = req.call
-          s = server session_name
-          s.send_data req
-        else
-          @logger.info(type: 'res', method: @req_parser.http_method, path: @req_parser.request_url, cache: 'use', session: session_name, took: Time.new - @sessions[session_name][:start])
+        if match && res = @cache.get_or_nil(cache_key)
+          @logger.res(method: @req_parser.http_method, path: @req_parser.request_url, cache: 'use', session: session_name, took: Time.new - @sessions[session_name][:start], key: cache_key)
           @sessions.delete(session_name)
+          send_data res
+          return
         end
+
+        @sessions[session_name][:cache_key] = cache_key
+        s = server session_name
+        s.send_data ((match)? @req_buffer.gsub(/\r\n\r\n.+/m, "\r\n\r\n#{body}"): @req_buffer)
         @req_buffer.clear
         @req_body.clear
       end
@@ -82,11 +81,11 @@ module Kusabana
       -> do
         caching = 'no'
         s = @sessions[session_name]
-        if hash = s[:hash]
-          store = @cache.set(hash, s[:res_buffer], s[:rule].expired)
+        if s[:cache]
+          store = @cache.set(s[:cache_key], s[:res_buffer], s[:rule].expired)
           caching = (store)? 'store': 'error'
         end
-        @logger.info(type: 'res', method: @req_parser.http_method, path: @req_parser.request_url, cache: caching, session: session_name, took: Time.new - s[:start])
+        @logger.res(method: @req_parser.http_method, path: @req_parser.request_url, cache: caching, session: session_name, took: Time.new - s[:start], key: s[:cache_key])
         send_data s[:res_buffer]
       end
     end

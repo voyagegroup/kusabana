@@ -23,7 +23,7 @@ module Kusabana
 
     def modify(query)
       modified = scan_query(Oj.load(query, mode: :compat))
-      [Oj.dump(modified, mode: :compat), "#{@method}::#{@path}::#{modified.hash}"]
+      Oj.dump(modified, mode: :compat)
     end
 
     # Scan and Match with QueryModifier.pattern for query parsed from JSON

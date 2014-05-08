@@ -9,6 +9,16 @@ module Kusabana
       @formatter = LogFormatter.new(args[1][:es])
     end
 
+    def req(args={})
+      args[:type] = 'req'
+      info(args)
+    end
+
+    def res(args={})
+      args[:type] = 'res'
+      info(args)
+    end
+
     class LogFormatter < ::Logger::Formatter
       def initialize(es)
         super()
