@@ -11,20 +11,27 @@ module Kusabana
       @config = config
 
       @cache = Kusabana::Cache.new(@config['cache']['url'])
-      @logger = Kusabana::Logger.new(config['proxy']['output'] || STDOUT, es: @config['es']['output'])
+      @logger = Kusabana::Logger.new(config['proxy']['output'] || STDOUT, 7, es: @config['es']['output'])
     end
 
     def start
-      Process.daemon(true, true) if @config['proxy']['daemonize']
-      EM.epoll
+      begin
+        Process.daemon(true, true) if @config['proxy']['daemonize']
+        EM.epoll
 
-      EM.run do
-        trap("TERM") { stop }
-        trap("INT") { stop }
+        EM.run do
+          trap("TERM") { stop }
+          trap("INT") { stop }
 
-        option = {cache: @cache, logger: @logger, rules: @rules, es: @config['es']['remote']}
-        EM::start_server(@config['proxy']['host'], @config['proxy']['port'], Kusabana::Connection, option)
-        open(@config['proxy']['pid'] || 'kusabana.pid', 'w') {|f| f << Process.pid } if @config['proxy']['daemonize']
+          option = {cache: @cache, logger: @logger, rules: @rules, es: @config['es']['remote']}
+          EM::start_server(@config['proxy']['host'], @config['proxy']['port'], Kusabana::Connection, option)
+          EM.add_timer(10) do
+            @logger.stat(@rules)
+          end
+          open(@config['proxy']['pid'] || 'kusabana.pid', 'w') {|f| f << Process.pid } if @config['proxy']['daemonize']
+        end
+      rescue => e
+        @logger.error(e.backtrace)
       end
     end
 

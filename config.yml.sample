@@ -9,7 +9,7 @@ es:
     host: 'localhost'
     port: 9200
 # output:
-#   host: 'localhost'
+# - host: 'localhost'
 #   port: 9200
 cache:
   url: 'localhost:11211'
