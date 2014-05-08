@@ -51,7 +51,7 @@ describe Kusabana::Rule do
       allow(rule).to receive(:scan_query).with(Oj.load(query, mode: :compat)).and_return(modified)
     end
 
-    it { expect(rule.modify(query)).to eq([Oj.dump(modified, mode: :compat), "#{method}::#{path}::#{modified.hash}"]) }
+    it { expect(rule.modify(query)).to eq(Oj.dump(modified, mode: :compat)) }
   end
 
   describe '#scan_query' do
