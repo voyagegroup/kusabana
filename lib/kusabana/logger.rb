@@ -5,7 +5,7 @@ require 'logger'
 module Kusabana
   class Logger < ::Logger
     def initialize(*args)
-      super
+      super(args[0], args[1])
       @es, @index = [nil, nil]
       if es = args[2][:es]
         # Convert keys to symbol from string
@@ -29,12 +29,6 @@ module Kusabana
       info(args)
     end
     
-    def stat(rules)
-      rules.each do
-        p rules.expire
-      end
-    end
-
     class LogFormatter < ::Logger::Formatter
       def initialize(es, index)
         @es = es
