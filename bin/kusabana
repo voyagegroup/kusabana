@@ -9,7 +9,7 @@ require 'yaml'
 config = YAML.load_file("config.yml")
 
 rules = []
-search_caching = Kusabana::Rule.new('POST', /^\/\S+\/_search(\?.+)?$/, 600)
+search_caching = Kusabana::Rule.new('POST', /^\/\S+\/_search(\?.+)?$/, 300)
 timestamp_modifier = Kusabana::QueryModifier.new(/@timestamp/) do |query|
   if query.key?('from') && query.key?('to')
     query['from'] = query['from'] / 100000 * 100000
@@ -20,7 +20,8 @@ end
 search_caching.add_modifier(timestamp_modifier)
 rules << search_caching
 
-rules << Kusabana::Rule.new('GET', /^\/_nodes$/, 600)
-rules << Kusabana::Rule.new('GET', /^\/\S+\/_mapping$/, 600)
+rules << Kusabana::Rule.new('GET', /^\/_nodes$/, 300)
+rules << Kusabana::Rule.new('GET', /^\/\S+\/_mapping$/, 300)
+rules << Kusabana::Rule.new('GET', /^\/\S+\/_aliases(\?.+)?$/, 300)
 
 Kusabana::Proxy.new(rules, config).start
