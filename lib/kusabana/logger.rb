@@ -70,7 +70,8 @@ module Kusabana
         EM.defer -> do
           @es.search(index: @index, body: body)
         end, -> (result) do
-          info(result['aggregations']['count'].merge(type: 'stat', key: s[:key], from: s[:from], to: s[:to]))
+          agg = result['aggregations']['count']
+          info(agg.merge(type: 'stat', key: s[:key], from: s[:from], to: s[:to], efficiency: s[:took] * agg['count'] / s[:expire], expire: s[:expire]))
           stat
         end
       end
@@ -91,7 +92,7 @@ module Kusabana
           end
         end
         if msg[:cache] == 'store'
-           @logger.stats << {key: msg[:key], from: msg[:@timestamp], to: (timestamp+msg[:expire]).to_datetime.to_s}
+           @logger.stats << {key: msg[:key], from: msg[:@timestamp], to: (timestamp+msg[:expire]).to_datetime.to_s, took: msg[:took], expire: msg[:expire]}
         end
         raws = msg.inject([]) { |h, (key, value)| h << "#{key}:#{value}"; h }
         "#{raws.join("\t")}\n"

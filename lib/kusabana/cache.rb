@@ -3,18 +3,10 @@ require 'memcached'
 
 module Kusabana
   class Cache < Memcached
-    def get(key)
-      begin
-        super(key)
-      rescue Memcached::ServerIsMarkedDead
-        nil
-      end
-    end
-
     def get_or_nil(key)
       begin
         get(key)
-      rescue Memcached::NotFound
+      rescue Memcached::Error
         nil
       end
     end
@@ -23,7 +15,7 @@ module Kusabana
       begin
         super(key, value, ttl, encode, flags)
         true
-      rescue Memcached::ServerIsMarkedDead
+      rescue Memcached::Error
         false
       end
     end
