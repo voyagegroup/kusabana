@@ -71,7 +71,7 @@ module Kusabana
           @es.search(index: @index, body: body)
         end, -> (result) do
           agg = result['aggregations']['count']
-          info(agg.merge(type: 'stat', key: s[:key], from: s[:from], to: s[:to], efficiency: took * agg['count'] / s[:expire], expire: s[:expire]))
+          info(agg.merge(type: 'stat', key: s[:key], from: s[:from], to: s[:to], efficiency: s[:took] * agg['count'] / s[:expire], expire: s[:expire]))
           stat
         end
       end
