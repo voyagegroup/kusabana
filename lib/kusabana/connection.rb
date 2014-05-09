@@ -82,7 +82,7 @@ module Kusabana
         caching = 'no'
         s = @sessions[session_name]
         log = {}
-        if s[:cache]
+        if s[:cache] && @req_parser.status_code == 200
           store = @cache.set(s[:cache_key], s[:res_buffer], s[:rule].expired)
           if store
             caching = 'store'
