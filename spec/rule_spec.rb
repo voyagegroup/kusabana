@@ -7,14 +7,14 @@ describe Kusabana::Rule do
   let(:expired) { 10 }
   let(:rule) { Kusabana::Rule.new(method, pattern, expired) }
 
-  context '#add_modifier' do
+  describe '#add_modifier' do
     let(:modifier) { Kusabana::QueryModifier.new(/hoge/) {|query| query} }
     after { rule.add_modifier(modifier) }
 
     it { expect(rule.instance_variable_get(:@modifiers)).to receive(:<<).with(modifier) }
   end
 
-  context '#match' do
+  describe '#match' do
     context 'when receive with arguments will be matched' do
       it { expect(rule.match(method, '/hoge/fuga')).to be_true }
     end
@@ -42,7 +42,7 @@ describe Kusabana::Rule do
     end
   end
 
-  context '#modify' do
+  describe '#modify' do
     let(:query) { '{"hoge": "fugafuga"}' }
     let(:modified) { '{"hoge" : "fuga"}' }
     let(:path) { '/foo/bar' }
@@ -51,10 +51,10 @@ describe Kusabana::Rule do
       allow(rule).to receive(:scan_query).with(Oj.load(query, mode: :compat)).and_return(modified)
     end
 
-    it { expect(rule.modify(query)).to eq([Oj.dump(modified, mode: :compat), "#{method}::#{path}::#{modified.hash}"]) }
+    it { expect(rule.modify(query)).to eq(Oj.dump(modified, mode: :compat)) }
   end
 
-  context '#scan_query' do
+  describe '#scan_query' do
     context 'when query is Hash' do
       let(:query) { {"hoge" => "fuga", "foo" => "bar"} }
       let(:modifier) { Kusabana::QueryModifier.new(/^hoge$/) {|query| query} }
@@ -84,7 +84,7 @@ end
 
 describe Kusabana::QueryModifier do
   let(:modifier) { Kusabana::QueryModifier.new(/hoge/) {|query| query} }
-  context '#modify' do
+  describe '#modify' do
     let(:query) { 'fuga' }
     after { modifier.modify(query) }
 

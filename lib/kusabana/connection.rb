@@ -81,11 +81,17 @@ module Kusabana
       -> do
         caching = 'no'
         s = @sessions[session_name]
+        log = {}
         if s[:cache]
           store = @cache.set(s[:cache_key], s[:res_buffer], s[:rule].expired)
-          caching = (store)? 'store': 'error'
+          if store
+            caching = 'store'
+            log[:expire] = s[:rule].expired
+          else
+            caching = 'error'
+          end
         end
-        @logger.res(method: @req_parser.http_method, path: @req_parser.request_url, cache: caching, session: session_name, took: Time.new - s[:start], key: s[:cache_key])
+        @logger.res(log.merge(method: @req_parser.http_method, path: @req_parser.request_url, cache: caching, session: session_name, took: Time.new - s[:start], key: s[:cache_key]))
         send_data s[:res_buffer]
       end
     end

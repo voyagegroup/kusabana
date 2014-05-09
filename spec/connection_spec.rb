@@ -7,7 +7,7 @@ describe Kusabana::Connection do
   let(:proxy) { Kusabana::Proxy.new(rules, config) }
   let(:connection) { Kusabana::Connection.new({}, config) }
 
-  context '#on_data' do
+  describe '#on_data' do
     let(:request) { "GET / HTTP/1.1\r\n\r\n" }
     before { connection.instance_variable_set(:@req_parser, '') }
     after { connection.send(:on_data).call(request) }
@@ -16,7 +16,7 @@ describe Kusabana::Connection do
     it { expect(connection.instance_variable_get(:@req_parser)).to receive(:<<).with(request) }
   end
 
-  context '#on_parse_request_body' do
+  describe '#on_parse_request_body' do
     let(:callback) { connection.send(:on_parse_request_body) }
     let(:parser) { HTTP::Parser.new }
     after { parser << request }
@@ -37,7 +37,7 @@ describe Kusabana::Connection do
     end
   end
 
-  context '#on_parse_request', valid: true do
+  describe '#on_parse_request', valid: true do
     let(:callback) { connection.send(:on_parse_request) }
     let(:parser) { HTTP::Parser.new }
     before { parser.on_message_complete = callback }
@@ -47,7 +47,7 @@ describe Kusabana::Connection do
     it { expect(callback).to receive(:call) }
   end
 
-  context '#on_parse_response', valid: true do
+  describe '#on_parse_response', valid: true do
     let(:callback) { connection.send(:on_parse_response, nil) }
     let(:parser) { HTTP::Parser.new }
     before { parser.on_message_complete = callback }
@@ -57,7 +57,7 @@ describe Kusabana::Connection do
     it { expect(callback).to receive(:call) }
   end
 
-  context '#on_response' do
+  describe '#on_response' do
     let(:response) { "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\nhoge" }
     let(:uuid) { UUID::generate :compact }
     let(:session) { {res_buffer: '', res_parser: HTTP::Parser.new} }

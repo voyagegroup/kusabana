@@ -9,7 +9,9 @@ es:
     host: 'localhost'
     port: 9200
 # output:
-# - host: 'localhost'
-#   port: 9200
+#   index: 'kusabana-log-1'
+#   hosts:
+#   - host: 'localhost'
+#     port: 9200
 cache:
   url: 'localhost:11211'

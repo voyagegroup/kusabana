@@ -1,9 +1,12 @@
 # coding: UTF-8
 require 'elasticsearch'
 require 'logger'
+require 'oj'
+require 'yaml'
 
 module Kusabana
   class Logger < ::Logger
+    attr_accessor :stats
     def initialize(*args)
       super(args[0], args[1])
       @es, @index = [nil, nil]
@@ -16,7 +19,8 @@ module Kusabana
         @es = Elasticsearch::Client.new(hosts: hosts)
         @index = es['index']
       end
-      @formatter = LogFormatter.new(@es, @index)
+      @formatter = LogFormatter.new(self, @es, @index)
+      @stats = []
     end
 
     def req(args={})
@@ -29,25 +33,65 @@ module Kusabana
       info(args)
     end
     
+    def add(*args)
+      case args[2]
+      when Array
+        args[2].each{|v| add(args[0], args[1], v) }
+      when String
+        add(args[0], args[1], message: args[2])
+      else
+        super
+      end
+    end
+
+    def stat
+      if s = @stats.shift
+        body_yaml = <<-"EOS"
+          size: 0
+          query:
+            filtered:
+              query:
+                match_all: {}
+              filter:
+                and:
+                - range:
+                   '@timestamp':
+                      gt: '#{s[:from]}'
+                      lt: '#{s[:to]}'
+                - term:
+                    key.no_analyzed: #{s[:key]}
+                    cache: use
+          aggs:
+            count:
+              stats:
+                field: took
+        EOS
+        body = YAML.load(body_yaml)
+        EM.defer -> do
+          @es.search(index: @index, body: body)
+        end, -> (result) do
+          info(result['aggregations']['count'].merge(type: 'stat', key: s[:key], from: s[:from], to: s[:to]))
+          stat
+        end
+      end
+    end
+    
     class LogFormatter < ::Logger::Formatter
-      def initialize(es, index)
+      def initialize(logger, es, index)
+        @logger = logger
         @es = es
         @index = index
       end
 
       def call(severity, timestamp, progname, msg)
-        case msg
-        when Array
-          return msg.map{|v| call(severity, timestamp, progname, v) }.join('')
-        when String
-          msg = {message: msg}
-        end
         msg[:@timestamp] = timestamp.to_datetime.to_s
-        if @es
-          type = msg.delete(:type)
-          Thread.new do
-            @es.index(index: @index, type: type, body: msg)
+        if @es && msg.key?(:type)
+          EM.defer do
+            @es.index(index: @index, type: msg[:type], body: msg.reject{|k, v| k == :type})
           end
+        end
+        if msg[:cache] == 'store'
+           @logger.stats << {key: msg[:key], from: msg[:@timestamp], to: (timestamp+msg[:expire]).to_datetime.to_s}
         end
         raws = msg.inject([]) { |h, (key, value)| h << "#{key}:#{value}"; h }
         "#{raws.join("\t")}\n"
