@@ -25,7 +25,7 @@ module Kusabana
 
           option = {cache: @cache, logger: @logger, rules: @rules, es: @config['es']['remote']}
           EM::start_server(@config['proxy']['host'], @config['proxy']['port'], Kusabana::Connection, option)
-          EM::PeriodicTimer.new(30) { @logger.stat }
+          EM::PeriodicTimer.new(300) { @logger.stat }
           open(@config['proxy']['pid'] || 'kusabana.pid', 'w') {|f| f << Process.pid } if @config['proxy']['daemonize']
         end
       rescue => e
