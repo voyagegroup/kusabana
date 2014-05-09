@@ -3,7 +3,7 @@ require 'oj'
 
 module Kusabana
   class Rule
-    attr_reader :expired
+    attr_reader :expired, :method
     def initialize(method, pattern, expired)
       @method = method
       @pattern = pattern
