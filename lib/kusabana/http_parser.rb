@@ -1,5 +1,6 @@
 # coding: UTF-8
 require 'http/parser'
+require 'uuid'
 
 module Kusabana
   class RequestParser < Http::Parser

@@ -1,5 +1,5 @@
 # coding: UTF-8
-require 'uuid'
+require 'em-proxy'
 
 module Kusabana
   class Connection < EM::ProxyServer::Connection

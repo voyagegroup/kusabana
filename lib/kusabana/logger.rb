@@ -2,6 +2,8 @@
 require 'logger'
 require 'oj'
 require 'yaml'
+require 'eventmachine'
+require 'elasticsearch'
 
 module Kusabana
   class Logger < ::Logger
@@ -9,12 +11,12 @@ module Kusabana
     def initialize(output, splits, env) 
       super(output, splits)
       @es, @index = [nil, nil]
-      # Convert keys to symbol from string
-      if env.config['es'].key?(:output)
+      if env.config['es'].key?('output')
+        # Convert keys to symbol from string
         hosts = env.config['es']['output']['hosts'].map do |v|
           v.inject({}) {|memo,(k,v)| memo[k.to_sym] = v; memo}
         end
-        @es = Elasticsearch::Client.new(hosts)
+        @es = Elasticsearch::Client.new(hosts: hosts)
         @index = env.config['es']['output']['index']
       end
       @formatter = LogFormatter.new(self, @es, @index)
