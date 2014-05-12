@@ -1,7 +1,6 @@
 require 'bundler/gem_tasks'
 require 'elasticsearch'
 require 'yaml'
-require 'oj'
 
 config = YAML.load_file("config.yml")
 
@@ -109,7 +108,7 @@ namespace :dashboard do
       v.inject({}) {|memo,(k,v)| memo[k.to_sym] = v; memo}
     end
     es = Elasticsearch::Client.new(hosts: hosts)
-    body = Oj.load(open('kibana-dashboard.json'), mode: :compat)
+    body = open('kibana-dashboard.json').read
     es.index(index: 'kibana-int', type: 'dashboard', id: 'kusabana', body: body)
   end
 end
