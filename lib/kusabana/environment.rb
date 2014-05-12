@@ -1,5 +1,4 @@
 #coding: utf-8
-require 'elasticsearch'
 
 module Kusabana
   class Environment

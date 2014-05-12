@@ -1,8 +1,5 @@
 #coding: utf-8
-require 'memcached'
-require 'em-proxy'
-require 'uuid'
-require 'http/parser'
+require 'eventmachine'
 
 module Kusabana
   class Proxy
