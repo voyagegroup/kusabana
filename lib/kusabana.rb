@@ -1,4 +1,5 @@
 #coding: utf-8
+require 'kusabana/environment'
 require 'kusabana/rule'
 require 'kusabana/cache'
 require 'kusabana/proxy'

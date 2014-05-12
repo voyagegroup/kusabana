@@ -1,5 +1,4 @@
 # coding: UTF-8
-require 'elasticsearch'
 require 'logger'
 require 'oj'
 require 'yaml'
@@ -7,17 +6,16 @@ require 'yaml'
 module Kusabana
   class Logger < ::Logger
     attr_accessor :stats
-    def initialize(*args)
-      super(args[0], args[1])
+    def initialize(output, splits, env) 
+      super(output, splits)
       @es, @index = [nil, nil]
-      if es = args[2][:es]
-        # Convert keys to symbol from string
-        hosts = es['hosts'].map do |v|
+      # Convert keys to symbol from string
+      if env.config['es'].key?(:output)
+        hosts = env.config['es']['output']['hosts'].map do |v|
           v.inject({}) {|memo,(k,v)| memo[k.to_sym] = v; memo}
         end
-
-        @es = Elasticsearch::Client.new(hosts: hosts)
-        @index = es['index']
+        @es = Elasticsearch::Client.new(hosts)
+        @index = env.config['es']['output']['index']
       end
       @formatter = LogFormatter.new(self, @es, @index)
       @stats = []
