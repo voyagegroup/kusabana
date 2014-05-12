@@ -29,7 +29,7 @@ module Kusabana
     # Callbacks
     private
     def on_data
-      -> (data) do
+      ->(data) do
         @req_buffer << data
         @req_parser << data
         :async
@@ -37,7 +37,7 @@ module Kusabana
     end
 
     def on_parse_request_body
-      -> (chunk) do
+      ->(chunk) do
         @req_body << chunk
       end
     end
@@ -99,7 +99,7 @@ module Kusabana
     end
 
     def on_response
-      -> (backend, resp) do
+      ->(backend, resp) do
         s = @sessions[backend]
         s[:res_buffer] << resp
         s[:res_parser] << resp
@@ -108,7 +108,7 @@ module Kusabana
     end
 
     def on_finish
-      -> (backend) do
+      ->(backend) do
         @sessions.delete(backend)
       end
     end

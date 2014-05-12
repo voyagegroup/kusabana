@@ -69,7 +69,7 @@ module Kusabana
         body = YAML.load(body_yaml)
         EM.defer -> do
           @es.search(index: @index, body: body)
-        end, -> (result) do
+        end, ->(result) do
           agg = result['aggregations']['count']
           info(agg.merge(type: 'stat', key: s[:key], from: s[:from], to: s[:to], efficiency: s[:took] * agg['count'] / s[:expire], expire: s[:expire]))
         end
