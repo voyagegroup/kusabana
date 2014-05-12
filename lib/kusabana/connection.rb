@@ -61,7 +61,7 @@ module Kusabana
         end.call
 
         cache_key = @req_parser.cache_key(body)
-        @logger.req(method: @req_parser.http_method, path: @req_parser.request_url, match: match, session: session_name)
+        @logger.req(method: @req_parser.http_method, path: @req_parser.request_url, match: match, session: session_name, orig_query: @req_body, mod_query: body)
         
         if match && res = @cache.get_or_nil(cache_key)
           @logger.res(method: @req_parser.http_method, path: @req_parser.request_url, cache: 'use', session: session_name, took: Time.new - @sessions[session_name][:start], key: cache_key)
