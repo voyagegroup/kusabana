@@ -112,3 +112,15 @@ namespace :dashboard do
     es.index(index: 'kibana-int', type: 'dashboard', id: 'kusabana', body: body)
   end
 end
+
+namespace :template do
+  desc 'Create index template into output elasticsearch'
+  task :create do
+    hosts = config['es']['output']['hosts'].map do |v|
+      v.inject({}) {|memo,(k,v)| memo[k.to_sym] = v; memo}
+    end
+    es = Elasticsearch::Client.new(hosts: hosts)
+    body = open('kusabana_log_template.json').read
+    es.index(index: '_template', type: 'kusabana-template-1', body: body)
+  end
+end
