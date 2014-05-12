@@ -7,14 +7,51 @@ memcached
 ruby => 2.1.1 (maybe work also in ruby => 2.0)
 
 ### Config
-See and Edit and Rename `config.yml.sample`.
+    proxy:
+      host: '0.0.0.0'
+      port: 9292
+      daemonize: false
+    # output: 'log/kusabana.log' 
+    # pid: 'log/kusabana.pid'
+    es:
+      remote:
+        host: 'localhost'
+        port: 9200
+    # output:
+    #   index: 'kusabana-log-1'
+    #   hosts:
+    #   - host: 'localhost'
+    #     port: 9200
+    cache:
+      url: 'localhost:11211'
+
+* proxy
+  - host, port: Host and port used by Kusabana
+  - daemonize: When true, Kusabana will work as daemon
+  - output: The file for output log. If you make it comment out, the log will output to STDOUT
+  - pid: Used by daemon mode (default value is './kusabana.pid')
+* es
+  - remote: The ElasticSearch used for proxying access
+  - output: The ElasticSearch used to store and to aggregate Kusabana's log
+* cache
+  - url: Memcached url
+
+### Installation
+    bundle install
+
+#### Template
+    bundle exec rake temprate:create
+
+#### Dashboard
+    bundle exec rake dashboard:create
+
+Then, you can see kusabana's dashboard at `/dashboard/elasticsearch/kusabana`
 
 ### Launch
-#### Classic
     make install
     bundle exec rake start
 
-#### Docker
+### Docker
 You can also build Docker image
     
     rake docker:run
