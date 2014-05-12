@@ -20,7 +20,7 @@ module Kusabana
           EM::PeriodicTimer.new(300) { @env.logger.stat }
           open(@env.config['proxy']['pid'] || 'kusabana.pid', 'w') {|f| f << Process.pid } if @env.config['proxy']['daemonize']
         end
-      rescue => e
+      rescue HTTP::Parser::Error => e
         @env.logger.error(e.to_s)
         @env.logger.error(e.backtrace)
         @env.sessions.clear
@@ -29,7 +29,7 @@ module Kusabana
     end
 
     def stop
-      EM::stop_event_loop
+      EM.stop
     end
   end
 end

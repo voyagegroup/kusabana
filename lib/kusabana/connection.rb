@@ -7,11 +7,15 @@ module Kusabana
       @env = option[:env]
       @on_data = on_data
       @on_response = on_response
+      @on_finish = on_finish
+      comm_inactivity_timeout = @env.config['proxy']['timeout']
       super
     end
 
     def server(session_name)
-      super session_name, :host => @env.config['es']['remote']['host'], :port => @env.config['es']['remote']['port']
+      s = super session_name, :host => @env.config['es']['remote']['host'], :port => @env.config['es']['remote']['port']
+      s.comm_inactivity_timeout = @env.config['proxy']['timeout']
+      s
     end
 
     # Callbacks
@@ -29,6 +33,12 @@ module Kusabana
         s = @env.sessions[backend]
         s[:res_parser] << resp
         resp
+      end
+    end
+
+    def on_finish
+      ->(backend) do
+        @env.sessions.delete(backend)
       end
     end
   end
