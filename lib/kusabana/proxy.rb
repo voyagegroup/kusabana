@@ -23,6 +23,8 @@ module Kusabana
       rescue => e
         @env.logger.error(e.to_s)
         @env.logger.error(e.backtrace)
+        stop
+        start
       end
     end
 
