@@ -23,13 +23,12 @@ module Kusabana
       rescue => e
         @env.logger.error(e.to_s)
         @env.logger.error(e.backtrace)
-        stop
         start
       end
     end
 
     def stop
-      EM.stop
+      EM::stop_event_loop
     end
   end
 end
