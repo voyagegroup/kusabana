@@ -41,7 +41,9 @@ module Kusabana
       when String
         add(args[0], args[1], message: args[2])
       else
-        super
+        EM.next_tick do
+          super
+        end
       end
     end
 
