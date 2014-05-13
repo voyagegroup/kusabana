@@ -29,7 +29,7 @@ module Kusabana
     end
 
     def stop
-      EM.stop
+      EM.next_tick { EM.stop }
     end
   end
 end
