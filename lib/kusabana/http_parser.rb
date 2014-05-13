@@ -44,18 +44,29 @@ module Kusabana
 
         cache_key = cache_key(body)
         @env.logger.req(method: http_method, path: request_url, match: match, session: session_name, orig_query: @body, mod_query: body)
-        
-        if match && res = @env.cache.get_or_nil(cache_key)
-          @env.logger.res(method: http_method, path: request_url, cache: 'use', session: session_name, took: Time.new - @env.sessions[session_name][:start], key: cache_key)
-          @env.sessions.delete(session_name)
-          @conn.send_data res
-          return
-        end
 
-        res_parser = Kusabana::ResponseParser.new(@env, session_name)
-        @env.sessions[session_name].merge!(cache_key: cache_key, res_parser: res_parser, path: request_url, method: http_method)
-        s = @conn.server session_name
-        s.send_data ((match)? @buffer.gsub(/\r\n\r\n.+/m, "\r\n\r\n#{body}"): @buffer)
+        relay = -> do
+          res_parser = Kusabana::ResponseParser.new(@env, session_name)
+          @env.sessions[session_name].merge!(cache_key: cache_key, res_parser: res_parser, path: request_url, method: http_method)
+          s = @conn.server session_name
+          s.send_data ((match)? @buffer.gsub(/\r\n\r\n.+/m, "\r\n\r\n#{body}"): @buffer)
+        end
+        
+        if match
+          EM.defer -> do
+            @env.cache.get_or_nil(cache_key)
+          end, ->(res) do
+            if res
+              @env.logger.res(method: http_method, path: request_url, cache: 'use', session: session_name, took: Time.new - @env.sessions[session_name][:start], key: cache_key)
+              @env.sessions.delete(session_name)
+              @conn.send_data res
+            else
+              relay.call
+            end
+          end
+        else
+          relay.call
+        end
       end
     end
 
@@ -80,16 +91,22 @@ module Kusabana
         s = @env.sessions[session_name]
         log = {}
         s[:res_parser].status_code
+        logging = -> { @env.logger.res(log.merge(method: s[:method], path: s[:path], cache: caching, session: session_name, took: Time.new - s[:start], key: s[:cache_key], status: s[:res_parser].status_code)) }
         if s[:cache] && s[:res_parser].status_code == 200
-          store = @env.cache.set(s[:cache_key], @buffer, s[:rule].expired)
-          if store
-            caching = 'store'
-            log[:expire] = s[:rule].expired
-          else
-            caching = 'error'
+          EM.defer -> do
+            @env.cache.set(s[:cache_key], @buffer, s[:rule].expired)
+          end, ->(store) do
+            if store
+              caching = 'store'
+              log[:expire] = s[:rule].expired
+            else
+              caching = 'error'
+            end
+            logging.call
           end
+        else
+          logging.call
         end
-        @env.logger.res(log.merge(method: s[:method], path: s[:path], cache: caching, session: session_name, took: Time.new - s[:start], key: s[:cache_key], status: s[:res_parser].status_code))
       end
     end
   end
