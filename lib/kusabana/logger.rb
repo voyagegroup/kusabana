@@ -46,9 +46,12 @@ module Kusabana
     end
 
     def stat
-      @es.bulk(body:bulk, index: @index)
-      bulk.clear
-      agg
+      EM.defer -> do
+        @es.bulk(body:@bulk, index: @index)
+      end, ->(result) do
+        @bulk.clear
+        agg
+      end
     end
 
     def agg
