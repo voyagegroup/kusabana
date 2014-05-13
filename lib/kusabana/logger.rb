@@ -7,7 +7,7 @@ require 'elasticsearch'
 
 module Kusabana
   class Logger < ::Logger
-    attr_accessor :stats
+    attr_accessor :stats, :bulk
     def initialize(output, splits, env) 
       super(output, splits)
       @es, @index = [nil, nil]
@@ -21,6 +21,7 @@ module Kusabana
       end
       @formatter = LogFormatter.new(self, @es, @index)
       @stats = []
+      @bulk = []
     end
 
     def req(args={})
@@ -45,6 +46,12 @@ module Kusabana
     end
 
     def stat
+      @es.bulk(body:bulk, index: @index)
+      bulk.clear
+      agg
+    end
+
+    def agg
       if s = @stats.shift
         body_yaml = <<-"EOS"
           size: 0
@@ -73,7 +80,7 @@ module Kusabana
           agg = result['aggregations']['count']
           info(agg.merge(type: 'stat', key: s[:key], from: s[:from], to: s[:to], efficiency: s[:took] * agg['count'] / s[:expire], expire: s[:expire]))
         end
-        stat
+        agg
       end
     end
     
@@ -87,9 +94,7 @@ module Kusabana
       def call(severity, timestamp, progname, msg)
         msg[:@timestamp] = timestamp.to_datetime.to_s
         if @es && msg.key?(:type)
-          EM.defer do
-            @es.index(index: @index, type: msg[:type], body: msg.reject{|k, v| k == :type})
-          end
+          @logger.bulk << {index: {_type: msg[:type], data: msg.reject{|k, v| k == :type }}}
         end
         if msg[:cache] == 'store'
            @logger.stats << {key: msg[:key], from: msg[:@timestamp], to: (timestamp+msg[:expire]).to_datetime.to_s, took: msg[:took], expire: msg[:expire]}
