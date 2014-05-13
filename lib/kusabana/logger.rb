@@ -52,7 +52,7 @@ module Kusabana
         @es.bulk(body:@bulk, index: @index)
       end, ->(result) do
         @bulk.clear
-        stat
+        EM.next_tick { stat }
       end
     end
 
