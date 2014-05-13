@@ -52,7 +52,7 @@ module Kusabana
         @es.bulk(body:@bulk, index: @index)
       end, ->(result) do
         @bulk.clear
-        EM.next_tick { stat }
+        stat
       end
     end
 
@@ -67,9 +67,9 @@ module Kusabana
               filter:
                 and:
                 - range:
-                   '@timestamp':
-                      gt: '#{s[:from]}'
-                      lt: '#{s[:to]}'
+                    '@timestamp':
+                      gt: "#{s[:from]}"
+                      lt: "#{s[:to]}"
                 - term:
                     key.no_analyzed: #{s[:key]}
                     cache: use
@@ -85,7 +85,7 @@ module Kusabana
           agg = result['aggregations']['count']
           info(agg.merge(type: 'stat', key: s[:key], from: s[:from], to: s[:to], efficiency: s[:took] * agg['count'] / s[:expire], expire: s[:expire]))
         end
-        EM.next_tick { stat }
+        stat
       end
     end
     
