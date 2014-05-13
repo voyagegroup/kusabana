@@ -85,7 +85,7 @@ module Kusabana
           agg = result['aggregations']['count']
           info(agg.merge(type: 'stat', key: s[:key], from: s[:from], to: s[:to], efficiency: s[:took] * agg['count'] / s[:expire], expire: s[:expire]))
         end
-        stat
+        EM.next_tick { stat }
       end
     end
     
