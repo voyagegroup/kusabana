@@ -45,16 +45,16 @@ module Kusabana
       end
     end
 
-    def stat
+    def interval
       EM.defer -> do
         @es.bulk(body:@bulk, index: @index)
       end, ->(result) do
         @bulk.clear
-        agg
+        stat
       end
     end
 
-    def agg
+    def stat
       if s = @stats.shift
         body_yaml = <<-"EOS"
           size: 0
@@ -83,7 +83,7 @@ module Kusabana
           agg = result['aggregations']['count']
           info(agg.merge(type: 'stat', key: s[:key], from: s[:from], to: s[:to], efficiency: s[:took] * agg['count'] / s[:expire], expire: s[:expire]))
         end
-        agg
+        stat
       end
     end
     
