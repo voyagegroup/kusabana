@@ -1,3 +1,4 @@
+---
 body {
   padding-top: 50px;
 }
@@ -11,5 +12,5 @@ h2 {
   margin-top: 0px;
   width: 100%;
   height: 300px;
-  background-image: url("/header.png");
+  background-image: url({{site.baseurl}}/header.png");
 }
