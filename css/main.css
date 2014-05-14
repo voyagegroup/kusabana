@@ -1,8 +1,15 @@
 body {
-  padding-top: 60px;
+  padding-top: 50px;
 }
 
 h1 {
   padding-top: 60px;
   margin-top: -60px;
+}
+
+.page-header {
+  margin-top: 0px;
+  width: 100%;
+  height: 300px;
+  background-image: url("/header.png");
 }
