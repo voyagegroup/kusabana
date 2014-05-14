@@ -49,7 +49,11 @@ module Kusabana
 
     def interval
       EM.defer -> do
-        @es.bulk(body:@bulk, index: @index)
+        if @bulk.any?
+          bulk = @bulk.clone
+          @bulk.clear
+          @es.bulk(index: @index, body: bulk)
+        end
       end, ->(result) do
         @bulk.clear
         stat
@@ -57,35 +61,39 @@ module Kusabana
     end
 
     def stat
-      if s = @stats.shift
-        body_yaml = <<-"EOS"
-          size: 0
-          query:
-            filtered:
-              query:
-                match_all: {}
-              filter:
-                and:
-                - range:
-                    '@timestamp':
-                      gt: "#{s[:from]}"
-                      lt: "#{s[:to]}"
-                - term:
-                    key.no_analyzed: #{s[:key]}
-                    cache: use
-          aggs:
-            count:
-              stats:
-                field: took
-        EOS
-        body = YAML.load(body_yaml)
-        EM.defer -> do
-          @es.search(index: @index, body: body)
-        end, ->(result) do
-          agg = result['aggregations']['count']
-          info(agg.merge(type: 'stat', key: s[:key], from: s[:from], to: s[:to], efficiency: s[:took] * agg['count'] / s[:expire], expire: s[:expire]))
-          stat
+      if @stats.any?
+        stats = @stats.clone
+        @stats.clear
+        body = stats.map do |s|
+          YAML.load <<-"EOS"
+            size: 0
+            query:
+              filtered:
+                query:
+                  match_all: {}
+                filter:
+                  and:
+                  - range:
+                      '@timestamp':
+                        gt: "#{s[:from]}"
+                        lt: "#{s[:to]}"
+                  - term:
+                      key.no_analyzed: #{s[:key]}
+                      cache: use
+            aggs:
+              count:
+                stats:
+                  field: took
+          EOS
         end
+        EM.defer(-> do
+          @es.msearch(index: @index, type: 'res', body: body)
+        end, ->(results) do
+          results['responses'].each_with_index do |result, i|
+            agg = result['aggregations']['count']
+            info(agg.merge(type: 'stat', key: stats[i][:key], from: stats[i][:from], to: stats[i][:to], efficiency: stats[i][:took] * agg['count'] / stats[i][:expire], expire: stats[i][:expire]))
+          end
+        end)
       end
     end
     
