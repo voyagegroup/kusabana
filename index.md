@@ -109,3 +109,8 @@ This behavior is made for ignoring tiny differents between queries(e.g. The filt
 
 Each `Rule` and `QueryModifier` is apply only first matched one.
 
+Benchmark
+---------
+
+Contribute
+----------
