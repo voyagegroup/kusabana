@@ -1,5 +1,9 @@
 ---
 ---
+.navbar * {
+  height: 50px;
+}
+
 .page-header {
   margin-top: 50px;
   width: 100%;

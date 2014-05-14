@@ -25,6 +25,7 @@ This will make you able to make configration easier.
 
 Installation
 ------------
+
     git clone https://github.com/voyagegroup/kusabana
     cd kusabana
     bundle install
@@ -33,6 +34,7 @@ Because of `memcached` gem, it require `libsasl2-dev` or any other similer packa
 
 Config
 ------
+
     proxy:
       host: '0.0.0.0'
       port: 9292
@@ -77,6 +79,7 @@ Then, the Dashboard is going to be seen at `/dashboard/elasticsearch/kusabana`.
 
 Usage
 -----
+
 The configration of cache is available in `./bin/kusabana`.
 
     # Default settings
@@ -97,9 +100,11 @@ The configration of cache is available in `./bin/kusabana`.
     rules << Kusabana::Rule.new('GET', /^\/\S+\/_aliases(\?.+)?$/, 300)
 
 ### Kusabana::Rule
+
     Kusabana::Rule.new(method, path_pattern, expire)
 
 ### Kusabana::QueryModifier
+
     Kusabana::QueryModifier.new(key_pattern, &block)
 
 When **Kusabana** serve request, it will be checked whether there are any `Rule` that is matched by `method` and `path_pattern`.  
@@ -112,6 +117,51 @@ Each `Rule` and `QueryModifier` is apply only first matched one.
 
 Log Format
 ----------
+
+### Request
+
+* `match`[boolean]
+* `method`[string]
+* `orig_query`[string]
+  - The query before modified
+* `mod_query`[string]
+  - The query afetr modified
+* `mod_query`[string]
+* `path`[string]
+* `session`[string]
+  - The UUID created for each Request-Response
+
+### Response
+
+* `cache`[string]
+  - `no`, `store`, `use` or `error`
+* `expire`[integer]
+  - The time cache living
+* `key`[string]
+  - The memcached key used for cache
+  - A format is `METHOD::PATH::HASH`
+* `method`[string]
+* `path`[stirng]
+* `session`[string]
+* `status`[integer]
+* `took`[float]
+  - Seconds spent betwenn Request and Response
+
+### Status
+
+* `key`[string]
+* `count`[intger]
+* `from`[date]
+* `to`[date]
+* `efficiency`[float]
+  - `[took when store]*count/expire` SO SUITABLE
+* `expire`[integer]
+
+* `avg`[float]
+* `max`[float]
+* `min`[float]
+* `sum`[float]
+  - Stats of took time to get cache from Memcached
 
 Benchmark
 ---------
