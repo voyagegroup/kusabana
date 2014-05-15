@@ -61,6 +61,7 @@ module Kusabana
               @env.logger.res(method: http_method, path: request_url, cache: 'use', session: session_name, took: Time.new - @env.sessions[session_name][:start], key: cache_key)
               @env.sessions.delete(session_name)
               @conn.send_data res
+              EM.next_tick { close_connection_after_writing }
             else
               @env.sessions[session_name].merge!(cache_key: cache_key, path: request_url, method: http_method)
               @conn.relay(session_name, @buffer.gsub(/\r\n\r\n.+/m, "\r\n\r\n#{body}"))
