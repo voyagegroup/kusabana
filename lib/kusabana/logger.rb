@@ -4,6 +4,7 @@ require 'oj'
 require 'yaml'
 require 'eventmachine'
 require 'elasticsearch'
+require 'thread'
 
 module Kusabana
   class Logger < ::Logger
@@ -20,8 +21,8 @@ module Kusabana
         @index = env.config['es']['output']['index']
       end
       @formatter = LogFormatter.new(self, @es, @index)
-      @stats = []
-      @bulk = []
+      @stats = Queue.new
+      @bulk = Queue.new
     end
 
     def req(args={})
@@ -41,29 +42,33 @@ module Kusabana
       when String
         add(args[0], args[1], message: args[2])
       else
-        EM.next_tick do
-          super
-        end
+        super
       end
     end
 
     def interval
-      EM.defer -> do
-        if @bulk.any?
-          bulk = @bulk.clone
-          @bulk.clear
-          @es.bulk(index: @index, body: bulk)
+      size = @stats.size
+      if size > 0
+        bulk = size.times.map do |i|
+          @bulk.pop
         end
-      end, ->(result) do
-        @bulk.clear
-        stat
+        EM.defer -> do
+          if bulk.length > 1
+            @es.bulk(index: @index, body: bulk)
+          elsif bulk.length == 1
+            @es.index(index: @index, type: bulk[0][:_type], body: bulk[0])
+          end
+        end
       end
+      stat
     end
 
     def stat
-      if @stats.any?
-        stats = @stats.clone
-        @stats.clear
+      size = @stats.size
+      if size > 0
+        stats = size.times.map do |i|
+          @stats.pop
+        end
         body = stats.map do |s|
           if s[:to] < Time.new
             YAML.load <<-"EOS"
@@ -91,14 +96,20 @@ module Kusabana
             nil
           end
         end.compact
-        EM.defer(-> do
-          @es.msearch(index: @index, type: 'res', body: body)
-        end, ->(results) do
-          results['responses'].each_with_index do |result, i|
-            agg = result['aggregations']['count']
-            info(agg.merge(type: 'stat', key: stats[i][:key], from: stats[i][:from], to: stats[i][:to], efficiency: stats[i][:took] * agg['count'] / stats[i][:expire], expire: stats[i][:expire]))
-          end
-        end)
+        if body.length > 0
+          EM.defer(-> do
+            if body.length > 1
+              @es.msearch(index: @index, type: 'res', body: body)['responses']
+            elsif body.length ==1
+              [@es.search(index: @index, type: 'res', body: body[0])]
+            end
+          end, ->(results) do
+            results.each_with_index do |result, i|
+              agg = result['aggregations']['count']
+              info(agg.merge(type: 'stat', key: stats[i][:key], from: stats[i][:from], to: stats[i][:to], efficiency: stats[i][:took] * agg['count'] / stats[i][:expire], expire: stats[i][:expire]))
+            end
+          end)
+        end
       end
     end
     
@@ -115,7 +126,7 @@ module Kusabana
           @logger.bulk << {index: {_type: msg[:type], data: msg.reject{|k, v| k == :type }}}
         end
         if msg[:cache] == 'store'
-           @logger.stats << {key: msg[:key], from: timestamp, to: timestamp+msg[:expire], took: msg[:took], expire: msg[:expire]}
+          @logger.stats << {key: msg[:key], from: timestamp, to: timestamp+msg[:expire], took: msg[:took], expire: msg[:expire]}
         end
         raws = msg.inject([]) { |h, (key, value)| h << "#{key}:#{value}"; h }
         "#{raws.join("\t")}\n"
