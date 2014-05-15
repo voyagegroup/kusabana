@@ -14,7 +14,7 @@ ruby => 2.1.1 (maybe work also in ruby => 2.0)
     cd kusabana
     bundle install
 
-More documents are available at (http://voyagegroup.github.io/kusabana/)[http://voyagegroup.github.io/kusabana/]
+More documents are available at http://voyagegroup.github.io/kusabana/
 
 ### Contributing
 
