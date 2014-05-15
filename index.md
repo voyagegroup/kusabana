@@ -174,8 +174,6 @@ Contribute
 Today, **Kusabana** is experimental product yet.  
 Don't mind to send patch!
 
- **Kusabana** is experimental product so far
-
 ### Todo
 1. Fork repo
 2. Make it change
