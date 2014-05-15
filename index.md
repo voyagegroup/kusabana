@@ -6,7 +6,7 @@ layout: default
 
 About
 -----
-**Kusabana** is a proxy server between [Kibana](http://www.elasticsearch.org/overview/kibana/) and [ElasticSearch](http://www.elasticsearch.org/overview/elasticsearch).  
+**Kusabana** is a proxy server between [Kibana](http://www.elasticsearch.org/overview/kibana/) and [Elasticsearch](http://www.elasticsearch.org/overview/elasticsearch).  
 It also works as 'query cache' server.  
 
 Design
@@ -15,12 +15,12 @@ Design
 
 Why
 ---
-ElasticSearch + Kibana are becoming typical solution for data mining.  
+Elasticsearch + Kibana are becoming typical solution for data mining.  
 However, it is said that they have some performance probrems.  
 The query produced by kibana is variable by time, path or dashboard's environment.  
-Futhermore, ElasticSearch doesn't have a mechanism of 'query cache' but for 'filter cache'.
+Futhermore, Elasticsearch doesn't have a mechanism of 'query cache' but for 'filter cache'.
 
-Although caching, **Kusabana** can store log of itself to ElasticSearch.  
+Although caching, **Kusabana** can store log of itself to Elasticsearch.  
 This will make you able to make configration easier.
 
 Installation
@@ -61,12 +61,12 @@ Config
   - output: The file for output log. If you make it comment out, the log will output to `STDOUT`
   - pid: Used by daemon mode (default value is `./kusabana.pid`)
 * es
-  - remote: The ElasticSearch used for proxying access
-  - output: The ElasticSearch used to store and to aggregate **Kusabana**'s log
+  - remote: The Elasticsearch used for proxying access
+  - output: The Elasticsearch used to store and to aggregate **Kusabana**'s log
 * cache
   - url: Memcached url
 
-If you want to store **Kusabana**'s log and set output ElasticSearch, You should PUT index template to ES.  
+If you want to store **Kusabana**'s log and set output Elasticsearch, You should PUT index template to ES.  
 Run
 
     bundle rake template:create
