@@ -1,6 +1,6 @@
 Gemfile.lock
 log
-config.yml
+/config.yml
 .*
 !.git
 .elasticbeanstalk/
