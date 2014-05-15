@@ -19,6 +19,7 @@ module Kusabana
         super
         true
       rescue HTTP::Parser::Error => e
+        @env.logger.error(e.class)
         @env.logger.error(e.to_s)
         @env.logger.error(e.backtrace)
         false
@@ -90,6 +91,7 @@ module Kusabana
         super
         true
       rescue HTTP::Parser::Error => e
+        @env.logger.error(e.class)
         @env.logger.error(e.to_s)
         @env.logger.error(e.backtrace)
         @env.sessions.delete(@session_name)

@@ -21,6 +21,7 @@ module Kusabana
           open(@env.config['proxy']['pid'] || 'kusabana.pid', 'w') {|f| f << Process.pid } if @env.config['proxy']['daemonize']
         end
       rescue => e
+        @env.logger.error(e.class)
         @env.logger.error(e.to_s)
         @env.logger.error(e.backtrace)
       end
