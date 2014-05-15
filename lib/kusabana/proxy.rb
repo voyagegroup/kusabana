@@ -23,9 +23,6 @@ module Kusabana
       rescue => e
         @env.logger.error(e.to_s)
         @env.logger.error(e.backtrace)
-        @env.sessions.clear
-        sleep 5
-        start
       end
     end
 

@@ -29,15 +29,20 @@ module Kusabana
     def on_data
       ->(data) do
         req_parser = Kusabana::RequestParser.new(@env, self)
-        unbind unless req_parser << data
+        unless req_parser << data
+          EM.next_tick { close_connection_after_writing }
+        end
         :async
       end
     end
 
     def on_response
       ->(backend, resp) do
-        s = @env.sessions[backend]
-        unbind unless s[:res_parser] << resp
+        if s = @env.sessions[backend]
+          unless s[:res_parser] << resp
+            EM.next_tick { close_connection_after_writing }
+          end
+        end
         resp
       end
     end
