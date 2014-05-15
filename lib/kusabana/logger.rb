@@ -47,20 +47,22 @@ module Kusabana
     end
 
     def interval
+      bulk = []
       size = @stats.size
       if size > 0
         bulk = size.times.map do |i|
-          @bulk.pop
-        end
-        EM.defer -> do
-          if bulk.length > 1
-            @es.bulk(index: @index, body: bulk)
-          elsif bulk.length == 1
-            @es.index(index: @index, type: bulk[0][:_type], body: bulk[0])
-          end
+          bulk << @bulk.pop
         end
       end
-      stat
+      EM.defer -> do
+        if bulk.length > 1
+          @es.bulk(index: @index, body: bulk)
+        elsif bulk.length == 1
+          @es.index(index: @index, type: bulk[0][:_type], body: bulk[0])
+        end
+      end, ->(result) do
+        stat
+      end
     end
 
     def stat
