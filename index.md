@@ -166,5 +166,19 @@ Log Format
 Benchmark
 ---------
 
+Not yet
+
 Contribute
 ----------
+
+Today, **Kusabana** is experimental product yet.  
+Don't mind to send patch!
+
+ **Kusabana** is experimental product so far
+
+### Todo
+1. Fork repo
+2. Make it change
+3. Run test (`bundle exec rake test`)
+4. Add a test for change
+5. Submit pull request
