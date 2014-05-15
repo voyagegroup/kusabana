@@ -15,7 +15,14 @@ module Kusabana
     
     def <<(data)
       @buffer << data
-      super
+      begin
+        super
+        true
+      rescue HTTP::Parser::Error => e
+        @env.logger.error(e.to_s)
+        @env.logger.error(e.backtrace)
+        false
+      end
     end
 
     def cache_key(body)
@@ -73,18 +80,27 @@ module Kusabana
       super
       @env = env
       @buffer = ''
-      self.on_message_complete = on_parse_response(session_name)
+      @session_name = session_name
+      self.on_message_complete = on_parse_response
     end
 
     def <<(data)
       @buffer << data
-      super
+      begin
+        super
+        true
+      rescue HTTP::Parser::Error => e
+        @env.logger.error(e.to_s)
+        @env.logger.error(e.backtrace)
+        @env.sessions.delete(@session_name)
+        false
+      end
     end
 
-    def on_parse_response(session_name)
+    def on_parse_response
       -> do
         caching = 'no'
-        s = @env.sessions[session_name]
+        s = @env.sessions[@session_name]
         log = {}
         if s[:cache] && status_code == 200
           EM.defer -> do
@@ -96,10 +112,10 @@ module Kusabana
             else
               caching = 'error'
             end
-            @env.logger.res(log.merge(method: s[:method], path: s[:path], cache: caching, session: session_name, took: Time.new - s[:start], key: s[:cache_key], status: status_code))
+            @env.logger.res(log.merge(method: s[:method], path: s[:path], cache: caching, session: @session_name, took: Time.new - s[:start], key: s[:cache_key], status: status_code))
           end
         else
-        @env.logger.res(log.merge(method: s[:method], path: s[:path], cache: caching, session: session_name, took: Time.new - s[:start], key: s[:cache_key], status: status_code))
+        @env.logger.res(log.merge(method: s[:method], path: s[:path], cache: caching, session: @session_name, took: Time.new - s[:start], key: s[:cache_key], status: status_code))
         end
       end
     end
