@@ -32,6 +32,7 @@ module Kusabana
       -> do
         session_name = UUID.generate :compact
         @env.sessions[session_name] = {start: Time.new}
+
         body, match = -> do
           @env.rules.each do |rule|
             if rule.match(http_method, request_url)
@@ -44,13 +45,6 @@ module Kusabana
 
         cache_key = cache_key(body)
         @env.logger.req(method: http_method, path: request_url, match: match, session: session_name, orig_query: @body, mod_query: body)
-
-        relay = -> do
-          res_parser = Kusabana::ResponseParser.new(@env, session_name)
-          @env.sessions[session_name].merge!(cache_key: cache_key, res_parser: res_parser, path: request_url, method: http_method)
-          s = @conn.server session_name
-          s.send_data ((match)? @buffer.gsub(/\r\n\r\n.+/m, "\r\n\r\n#{body}"): @buffer)
-        end
         
         if match
           EM.defer -> do
@@ -61,11 +55,13 @@ module Kusabana
               @env.sessions.delete(session_name)
               @conn.send_data res
             else
-              relay.call
+              @env.sessions[session_name].merge!(cache_key: cache_key, path: request_url, method: http_method)
+              @conn.relay(session_name, @buffer.gsub(/\r\n\r\n.+/m, "\r\n\r\n#{body}"))
             end
           end
         else
-          relay.call
+          @env.sessions[session_name].merge!(cache_key: cache_key, path: request_url, method: http_method)
+          @conn.relay(session_name, @buffer)
         end
       end
     end
@@ -90,9 +86,7 @@ module Kusabana
         caching = 'no'
         s = @env.sessions[session_name]
         log = {}
-        s[:res_parser].status_code
-        logging = -> { @env.logger.res(log.merge(method: s[:method], path: s[:path], cache: caching, session: session_name, took: Time.new - s[:start], key: s[:cache_key], status: s[:res_parser].status_code)) }
-        if s[:cache] && s[:res_parser].status_code == 200
+        if s[:cache] && status_code == 200
           EM.defer -> do
             @env.cache.set(s[:cache_key], @buffer, s[:rule].expired)
           end, ->(store) do
@@ -102,10 +96,10 @@ module Kusabana
             else
               caching = 'error'
             end
-            logging.call
+            @env.logger.res(log.merge(method: s[:method], path: s[:path], cache: caching, session: session_name, took: Time.new - s[:start], key: s[:cache_key], status: status_code))
           end
         else
-          logging.call
+        @env.logger.res(log.merge(method: s[:method], path: s[:path], cache: caching, session: session_name, took: Time.new - s[:start], key: s[:cache_key], status: status_code))
         end
       end
     end

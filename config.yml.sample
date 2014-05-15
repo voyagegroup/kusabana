@@ -2,6 +2,7 @@ proxy:
   host: '0.0.0.0'
   port: 9292
   daemonize: false
+  timeout: 15
 # output: 'log/kusabana.log' 
 # pid: 'log/kusabana.pid'
 es:

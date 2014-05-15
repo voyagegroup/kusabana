@@ -2,7 +2,10 @@
 require 'spec_helper'
 
 describe Kusabana::Logger do
-  let(:logger) { Kusabana::Logger.new(STDOUT, 1, {}) }
+  let(:env) { Kusabana::Environment.new(rules, config) }
+  let(:rules) { [] }
+  let(:logger) { Kusabana::Logger.new(STDOUT, 1, env) }
+
   describe '#req' do
     after { logger.req(hoge: 'fuga') }
     it { expect(logger).to receive(:info).with(hoge: 'fuga', type: 'req') }

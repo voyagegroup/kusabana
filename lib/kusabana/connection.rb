@@ -12,6 +12,12 @@ module Kusabana
       super
     end
 
+    def relay(session_name, data)
+      @env.sessions[session_name][:res_parser] = Kusabana::ResponseParser.new(@env, session_name)
+      s = server session_name
+      s.send_data data
+    end
+
     def server(session_name)
       s = super session_name, :host => @env.config['es']['remote']['host'], :port => @env.config['es']['remote']['port']
       s.comm_inactivity_timeout = @env.config['proxy']['timeout']
