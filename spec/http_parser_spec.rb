@@ -80,7 +80,7 @@ describe Kusabana::ResponseParser do
 
   describe '#on_parse_response', valid: true do
     let(:session) { {} }
-    let(:callback) { parser.send(:on_parse_response, session_name) }
+    let(:callback) { parser.send(:on_parse_response) }
     let(:response) { "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\nhoge" }
 
     before { env.sessions[session_name] = session }

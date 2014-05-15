@@ -29,7 +29,7 @@ module Kusabana
     def on_data
       ->(data) do
         req_parser = Kusabana::RequestParser.new(@env, self)
-        req_parser << data
+        unbind unless req_parser << data
         :async
       end
     end
@@ -37,7 +37,7 @@ module Kusabana
     def on_response
       ->(backend, resp) do
         s = @env.sessions[backend]
-        s[:res_parser] << resp
+        unbind unless s[:res_parser] << resp
         resp
       end
     end
