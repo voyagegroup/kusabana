@@ -2,7 +2,11 @@ require 'bundler/gem_tasks'
 require 'elasticsearch'
 require 'yaml'
 
-config = YAML.load_file("config.yml")
+config = begin
+           YAML.load_file('config.yml')
+         rescue Errno::ENOENT => e
+           YAML.load_file('./spec/config.yml')
+         end
 
 def get_pid(config)
   begin

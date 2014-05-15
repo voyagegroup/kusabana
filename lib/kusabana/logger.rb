@@ -65,27 +65,32 @@ module Kusabana
         stats = @stats.clone
         @stats.clear
         body = stats.map do |s|
-          YAML.load <<-"EOS"
-            size: 0
-            query:
-              filtered:
-                query:
-                  match_all: {}
-                filter:
-                  and:
-                  - range:
-                      '@timestamp':
-                        gt: "#{s[:from]}"
-                        lt: "#{s[:to]}"
-                  - term:
-                      key.no_analyzed: #{s[:key]}
-                      cache: use
-            aggs:
-              count:
-                stats:
-                  field: took
-          EOS
-        end
+          if s[:to] < Time.new
+            YAML.load <<-"EOS"
+              size: 0
+              query:
+                filtered:
+                  query:
+                    match_all: {}
+                  filter:
+                    and:
+                    - range:
+                        '@timestamp':
+                          gt: "#{s[:from].to_datetime}"
+                          lt: "#{s[:to].to_datetime}"
+                    - term:
+                        key.no_analyzed: #{s[:key]}
+                        cache: use
+              aggs:
+                count:
+                  stats:
+                    field: took
+            EOS
+          else
+            @stats << s
+            nil
+          end
+        end.compact
         EM.defer(-> do
           @es.msearch(index: @index, type: 'res', body: body)
         end, ->(results) do
@@ -110,7 +115,7 @@ module Kusabana
           @logger.bulk << {index: {_type: msg[:type], data: msg.reject{|k, v| k == :type }}}
         end
         if msg[:cache] == 'store'
-           @logger.stats << {key: msg[:key], from: msg[:@timestamp], to: (timestamp+msg[:expire]).to_datetime.to_s, took: msg[:took], expire: msg[:expire]}
+           @logger.stats << {key: msg[:key], from: timestamp, to: timestamp+msg[:expire], took: msg[:took], expire: msg[:expire]}
         end
         raws = msg.inject([]) { |h, (key, value)| h << "#{key}:#{value}"; h }
         "#{raws.join("\t")}\n"
