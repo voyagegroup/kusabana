@@ -48,7 +48,7 @@ module Kusabana
 
     def interval
       bulk = []
-      size = @stats.size
+      size = @bulk.size
       if size > 0
         bulk = size.times.map do |i|
           @bulk.pop
@@ -60,9 +60,14 @@ module Kusabana
             body = bulk[0][:index]
             @es.index(index: @index, type: body[:_type], body: body.reject{|k, v| k == :type })
           end
+        end, ->(result) do
+          stat
+          EM.add_timer(300) { interval }
         end
+      else
+        stat
+        EM.add_timer(300) { interval }
       end
-      stat
     end
 
     def stat
