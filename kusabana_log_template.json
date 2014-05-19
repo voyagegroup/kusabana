@@ -1,0 +1,84 @@
+{
+    "template": "kusabana-log*",
+    "settings": {
+        "number_of_shards": 5,
+        "number_of_replicas": 1
+    },
+    "mappings": {
+        "_default_": {
+            "_source": { "compress": true },
+            "dynamic_templates": [
+                {
+                    "string_template": {
+                        "match": "*",
+                        "mapping": { "type": "string", "index": "not_analyzed" },
+                        "match_mapping_type": "string"
+                    }
+                }
+            ]
+        },
+        "res": {
+            "properties": {
+                "@timestamp": { "type": "date", "index": "not_analyzed" },
+                "match": { "type": "boolean", "index": "not_analyzed" },
+                "method": { "type": "string", "index": "not_analyzed" },
+                "path": {
+                    "type": "multi_field",
+                    "fields": {
+                        "analyzed": {"type":"string", "index": "analyzed"},
+                        "no_analyzed": {"type":"string", "index": "not_analyzed"}
+                    }
+                },
+                "orig_query": {
+                    "type": "multi_field",
+                    "fields": {
+                        "analyzed": {"type":"string", "index": "analyzed"},
+                        "no_analyzed": {"type":"string", "index": "not_analyzed"}
+                    }
+                },
+                "mod_query": {
+                    "type": "multi_field",
+                    "fields": {
+                        "analyzed": {"type":"string", "index": "analyzed"},
+                        "no_analyzed": {"type":"string", "index": "not_analyzed"}
+                    }
+                },
+                "session": { "type": "string", "index": "not_analyzed" }
+            }
+        },
+        "req": {
+            "properties": {
+                "@timestamp": { "type": "date", "index": "not_analyzed" },
+                "cache": {"type": "string", "index": "not_analyzed"},
+                "expire": {"type": "integer", "index": "not_analyzed"},
+                "key": {"type": "string", "index": "not_analyzed"},
+                "method": {"type": "string", "index": "not_analyzed"},
+                "path": {
+                    "type": "multi_field",
+                    "fields": {
+                        "analyzed": {"type":"string", "index": "analyzed"},
+                        "no_analyzed": {"type":"string", "index": "not_analyzed"}
+                    }
+                },
+                "session": {"type": "string", "index": "not_analyzed"},
+                "status":  {"type": "string", "index": "not_analyzed"},
+                "took": {"type": "float", "index": "not_analyzed"}
+            }
+        },
+        "stat": {
+            "properties": {
+                "@timestamp": { "type": "date", "index": "not_analyzed" },
+                "took": {"type": "float", "index": "not_analyzed"},
+                "count": {"type": "integer", "index": "not_analyzed"},
+                "efficiency": {"type": "float", "index": "not_analyzed"},
+                "expire": {"type": "integer", "index": "not_analyzed"},
+                "from": {"type": "date", "index": "not_analyzed"},
+                "key": {"type": "string", "index": "not_analyzed"},
+                "max": {"type": "float", "index": "not_analyzed"},
+                "min": {"type": "float", "index": "not_analyzed"},
+                "sum": {"type": "float", "index": "not_analyzed"},
+                "to": {"type": "date", "index": "not_analyzed"}
+            }
+        }
+    }
+}

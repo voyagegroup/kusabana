@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+# coding: UTF-8
+lib = File.expand_path(File.dirname(__FILE__) + '/../lib')
+$LOAD_PATH.unshift(lib) if File.directory?(lib) && !$LOAD_PATH.include?(lib)
+
+require 'kusabana'
+require 'yaml'
+
+config = YAML.load_file("config.yml")
+
+rules = []
+search_caching = Kusabana::Rule.new('POST', /^\/.+\/_search(\?.+)?$/, 300)
+timestamp_modifier = Kusabana::QueryModifier.new(/@timestamp/) do |query|
+  if query.key?('from') && query.key?('to')
+    query['from'] = query['from'] / 100000 * 100000
+    query['to'] = query['to'] / 100000 * 100000
+  end
+  query
+end
+search_caching.add_modifier(timestamp_modifier)
+rules << search_caching
+
+rules << Kusabana::Rule.new('GET', /^\/_nodes$/, 300)
+rules << Kusabana::Rule.new('GET', /^\/\S+\/_mapping$/, 300)
+rules << Kusabana::Rule.new('GET', /^\/\S+\/_aliases(\?.+)?$/, 300)
+
+Kusabana::Proxy.new(rules, config).start
