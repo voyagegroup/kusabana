@@ -6,7 +6,7 @@ $LOAD_PATH.unshift(lib) if File.directory?(lib) && !$LOAD_PATH.include?(lib)
 require 'kusabana'
 require 'yaml'
 
-config = YAML.load_file("config.yml")
+config = YAML.load_file(ENV['KUSABANA_CONF'] || "config.yml")
 
 rules = []
 search_caching = Kusabana::Rule.new('POST', /^\/.+\/_search(\?.+)?$/, 300)
