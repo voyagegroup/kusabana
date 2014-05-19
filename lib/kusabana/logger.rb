@@ -39,10 +39,10 @@ module Kusabana
       case args[2]
       when Array
         args[2].each{|v| add(args[0], args[1], v) }
-      when String
-        add(args[0], args[1], message: args[2])
-      else
+      when Hash
         super
+      else
+        add(args[0], args[1], message: args[2].to_s)
       end
     end
 
@@ -51,18 +51,18 @@ module Kusabana
       size = @stats.size
       if size > 0
         bulk = size.times.map do |i|
-          bulk << @bulk.pop
+          @bulk.pop
+        end
+        EM.defer -> do
+          if bulk.length > 1
+            @es.bulk(index: @index, body: bulk)
+          elsif bulk.length == 1
+            body = bulk[0][:index]
+            @es.index(index: @index, type: body[:_type], body: body.reject{|k, v| k == :type })
+          end
         end
       end
-      EM.defer -> do
-        if bulk.length > 1
-          @es.bulk(index: @index, body: bulk)
-        elsif bulk.length == 1
-          @es.index(index: @index, type: bulk[0][:_type], body: bulk[0])
-        end
-      end, ->(result) do
-        stat
-      end
+      stat
     end
 
     def stat
