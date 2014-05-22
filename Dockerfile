@@ -1,25 +1,24 @@
 FROM ubuntu:trusty
 
 RUN apt-get update
+RUN apt-get upgrade -y
+RUN apt-get install -y software-properties-common
 
-# Install ruby-2.1.1
-RUN apt-get build-dep -y ruby2.0
-RUN apt-get install -y git curl
-
-RUN git clone https://github.com/sstephenson/ruby-build.git /ruby-build
-
-ENV PATH /ruby-build/bin:$PATH
-# Patch for readline because of breaked compatibility at current version
-RUN curl -fsSL https://gist.github.com/mislav/a18b9d7f0dc5b9efc162.txt | ruby-build --patch 2.1.1 /usr/local
-RUN gem install bundler
+# Install ruby-2.1
+RUN add-apt-repository -y ppa:brightbox/ruby-ng
+RUN apt-get update
+RUN apt-get install -y ruby2.1
 
 # Install kusabana
 RUN mkdir /kusabana
 WORKDIR /kusabana
 
 # Add Gemfile and run bundle install
-RUN apt-get install -y libsasl2-dev
-ADD ./Gemfile /kusabana/
+RUN apt-get install -y libsasl2-dev git build-essential ruby2.1-dev
+RUN gem install bundle
+ADD ./Gemfile /kusabana/Gemfile
+ADD ./kusabana.gemspec /kusabana/kusabana.gemspec
+ADD ./lib/kusabana/version.rb /kusabana/lib/kusabana/version.rb
 RUN bundle install
 
 # Add any other file
