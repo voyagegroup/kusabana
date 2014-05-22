@@ -8,6 +8,7 @@ module Kusabana
       @on_data = on_data
       @on_response = on_response
       @on_finish = on_finish
+      create_session
       comm_inactivity_timeout = @env.config['proxy']['timeout']
       super
     end
@@ -24,16 +25,18 @@ module Kusabana
       s
     end
 
+    def create_session
+      @req_parser = Kusabana::RequestParser.new(@env, self)
+    end
+
     # Callbacks
     private
     def on_data
       ->(data) do
-        req_parser = Kusabana::RequestParser.new(@env, self)
-        if req_parser << data
-          :async
-        else
-          data
+        unless @req_parser << data
+          EM.next_tick { close_connection_after_writing }
         end
+        :async
       end
     end
 

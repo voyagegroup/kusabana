@@ -38,6 +38,7 @@ module Kusabana
 
     def on_parse_request
       -> do
+        @conn.create_session
         session_name = UUID.generate :compact
         @env.sessions[session_name] = {start: Time.new}
 
