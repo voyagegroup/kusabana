@@ -29,10 +29,11 @@ module Kusabana
     def on_data
       ->(data) do
         req_parser = Kusabana::RequestParser.new(@env, self)
-        unless req_parser << data
-          EM.next_tick { close_connection_after_writing }
+        if req_parser << data
+          :async
+        else
+          data
         end
-        :async
       end
     end
 
