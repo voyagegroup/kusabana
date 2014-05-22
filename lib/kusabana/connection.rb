@@ -8,6 +8,7 @@ module Kusabana
       @on_data = on_data
       @on_response = on_response
       @on_finish = on_finish
+      @req_parser = Kusabana::RequestParser.new(@env, self)
       comm_inactivity_timeout = @env.config['proxy']['timeout']
       super
     end
@@ -28,8 +29,7 @@ module Kusabana
     private
     def on_data
       ->(data) do
-        req_parser = Kusabana::RequestParser.new(@env, self)
-        unless req_parser << data
+        unless @req_parser << data
           EM.next_tick { close_connection_after_writing }
         end
         :async
