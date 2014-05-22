@@ -72,8 +72,10 @@ module Kusabana
           @conn.relay(session_name, @buffer)
         end
       end
+      @buffer.clear
+      @body.clear
+      self.reset!
     end
-
   end
 
   class ResponseParser < Http::Parser
