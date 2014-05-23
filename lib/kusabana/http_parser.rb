@@ -27,7 +27,7 @@ module Kusabana
     end
 
     def cache_key(body)
-      "#{http_method}::#{request_url}::#{body.hash}"
+      "#{@env.config['cache']['key_prefix']}::#{http_method}::#{request_url}::#{body.hash}"
     end
 
     def on_parse_request_body
