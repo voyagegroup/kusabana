@@ -37,24 +37,9 @@ describe Kusabana::Connection do
     before { session[:path] = 'hoge' }
 
     it do
-      expect(conn).to receive(:remote).with('hoge').and_return(env.config['es']['remotes'][0])
+      expect(env).to receive(:remote).with(session_name).and_return(env.config['es']['remotes'][0])
       expect(EM).to receive(:bind_connect).with(nil, nil, remote['host'], remote['port'], EventMachine::ProxyServer::Backend, false).and_return(EM::ProxyServer::Backend.new({}))
       expect_any_instance_of(EM::ProxyServer::Backend).to receive(:comm_inactivity_timeout=).with(15)
-    end
-  end
-
-  describe '#remote' do
-    let(:remote) { conn.remote(path) }
-    context 'when receiving path will be matched' do
-      let(:path) { '/fuga/fugafuga.html' }
-      
-      it { expect(remote).to eq(env.config['es']['remotes'][1]) }
-    end
-
-    context 'when receiving path will not be matched' do
-      let(:path) { '/foo/bar.html' }
-      
-      it { expect(remote).to eq(env.config['es']['remotes'][0]) }
     end
   end
 

@@ -24,19 +24,10 @@ module Kusabana
     end
 
     def server(session_name)
-      r = remote(@env.sessions[session_name][:path])
+      r = @env.remote(session_name)
       s = super session_name, :host => r['host'], :port => r['port']
       s.comm_inactivity_timeout = @env.config['proxy']['timeout']
       s
-    end
-
-    def remote(path)
-      @env.config['es']['remotes'].each do |remote|
-        if path.start_with?(remote['path'])
-          return remote
-        end
-      end
-      @env.config['es']['remotes'][0]
     end
 
     # Callbacks

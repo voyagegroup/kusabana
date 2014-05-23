@@ -11,5 +11,15 @@ module Kusabana
       @logger = Kusabana::Logger.new(config['proxy']['output'] || STDOUT, 7, self)
       @sessions = {}
     end
+
+    def remote(session_name)
+      path = @sessions[session_name][:path]
+      @config['es']['remotes'].each do |remote|
+        if path.start_with?(remote['path'])
+          return remote
+        end
+      end
+      @config['es']['remotes'][0]
+    end
   end
 end
