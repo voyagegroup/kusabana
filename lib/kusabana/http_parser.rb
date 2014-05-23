@@ -40,13 +40,17 @@ module Kusabana
       -> do
         @conn.create_session
         session_name = UUID.generate :compact
-        @env.sessions[session_name] = {start: Time.new}
+        @env.sessions[session_name] = {start: Time.new, path: request_url}
+        remote = @env.remote(session_name)
+        remote_path = request_url.gsub("#{remote['path']}/", '/')
 
         body, match = -> do
-          @env.rules.each do |rule|
-            if rule.match(http_method, request_url)
-              @env.sessions[session_name].merge!(rule: rule, cache: true)
-              return [rule.modify(@body), true]
+          if rules = @env.rules[remote['path']]
+            rules.each do |rule|
+              if rule.match(http_method, remote_path)
+                @env.sessions[session_name].merge!(rule: rule, cache: true)
+                return [rule.modify(@body), true]
+              end
             end
           end
           [@body, false]
@@ -64,12 +68,12 @@ module Kusabana
               @env.sessions.delete(session_name)
               @conn.send_data res
             else
-              @env.sessions[session_name].merge!(cache_key: cache_key, path: request_url, method: http_method)
-              @conn.relay(session_name, @buffer.gsub(/\r\n\r\n.+/m, "\r\n\r\n#{body}"))
+              @env.sessions[session_name].merge!(cache_key: cache_key, method: http_method)
+              @conn.relay(session_name, @buffer.gsub(/ \/\S+?#{remote_path} /, " #{remote_path} ").gsub(/\r\n\r\n.+/m, "\r\n\r\n#{body}"))
             end
           end
         else
-          @env.sessions[session_name].merge!(cache_key: cache_key, path: request_url, method: http_method)
+          @env.sessions[session_name].merge!(cache_key: cache_key, method: http_method)
           @conn.relay(session_name, @buffer)
         end
       end

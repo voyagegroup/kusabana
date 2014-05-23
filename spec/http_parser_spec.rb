@@ -2,7 +2,7 @@
 require 'spec_helper'
 
 describe Kusabana::RequestParser do
-  let(:rules) { [] }
+  let(:rules) { {} }
   let(:env) { Kusabana::Environment.new(rules, config) }
   let(:conn) { Kusabana::Connection.new({}, env: env) }
   let(:parser) { Kusabana::RequestParser.new(env, conn) }
@@ -25,17 +25,18 @@ describe Kusabana::RequestParser do
 
   describe '#on_parse_request' do
     let(:body) { UUID.generate :compact }
-    let(:request) { "GET / HTTP/1.1\r\n\r\n#{body}" }
+    let(:request) { "GET /hoge HTTP/1.1\r\n\r\n#{body}" }
     let(:callback) { parser.send(:on_parse_request) }
     let(:session_name) { UUID.generate :compact }
 
     before { allow(UUID).to receive(:generate).and_return(session_name) }
+    before { allow(parser).to receive(:request_url).and_return('/') }
     before { parser.instance_variable_set(:@buffer, request) }
     after { callback.call }
 
     context 'when matched' do
       let(:rule) { Kusabana::Rule.new('', //, 0) }
-      let(:rules) { [rule] }
+      let(:rules) { {'/hoge' => [rule]} }
       before { allow(rule).to receive(:match).and_return(true) }
 
       context 'and hit cache' do
@@ -49,7 +50,7 @@ describe Kusabana::RequestParser do
 
       context 'and hit no cache' do
         let(:modified_body) { UUID.generate :compact }
-        let(:modified_request) { "GET / HTTP/1.1\r\n\r\n#{modified_body}" }
+        let(:modified_request) { "GET /hoge HTTP/1.1\r\n\r\n#{modified_body}" }
         before { allow(env.cache).to receive(:get_or_nil).and_return(nil) }
         before { allow(rule).to receive(:modify).and_return(modified_body) }
 
@@ -64,7 +65,7 @@ describe Kusabana::RequestParser do
 end
 
 describe Kusabana::ResponseParser do
-  let(:rules) { [] }
+  let(:rules) { {} }
   let(:env) { Kusabana::Environment.new(rules, config) }
   let(:conn) { Kusabana::Connection.new({}, env: env) }
   let(:session_name) { UUID.generate :compact }
