@@ -74,7 +74,7 @@ module Kusabana
           end
         else
           @env.sessions[session_name].merge!(cache_key: cache_key, method: http_method)
-          @conn.relay(session_name, @buffer)
+          @conn.relay(session_name, @buffer.gsub(/ \/\S+?#{remote_path} /, " #{remote_path} "))
         end
       end
     end
