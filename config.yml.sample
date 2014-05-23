@@ -16,3 +16,4 @@ es:
 #     port: 9200
 cache:
   url: 'localhost:11211'
+  key_prefix: ''
