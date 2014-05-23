@@ -6,9 +6,10 @@ proxy:
 # output: 'log/kusabana.log' 
 # pid: 'log/kusabana.pid'
 es:
-  remote:
-    host: 'localhost'
-    port: 9200
+  remotes:
+    - path: '/'
+      host: 'localhost'
+      port: 9200
 # output:
 #   index: 'kusabana-log-1'
 #   hosts:

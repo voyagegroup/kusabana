@@ -5,13 +5,21 @@ describe Kusabana::Connection do
   let(:env) { Kusabana::Environment.new(rules, config) }
   let(:rules) { [] }
   let(:conn) { Kusabana::Connection.new({}, env: env) }
+  let(:session) { {} }
   let(:session_name) { UUID::generate :compact }
+  before { env.sessions[session_name] = session }
 
+  describe '#create_session' do
+    let(:parser) { Kusabana::RequestParser.new(env, conn) }
+    before { allow(Kusabana::RequestParser).to receive(:new).with(env, conn).and_return(parser) }
+    before { conn.create_session }
+
+    it { expect(conn.instance_variable_get(:@req_parser)).to eq(parser) }
+  end
 
   describe '#relay' do
     let(:data) { UUID::generate :compact }
 
-    before { env.sessions[session_name] = {} }
     before { allow(conn).to receive(:server).and_return(EM::ProxyServer::Backend.new({})) }
     after { conn.send(:relay, session_name, data) }
 
@@ -24,14 +32,31 @@ describe Kusabana::Connection do
   end
 
   describe '#server' do
+    let(:remote) { env.config['es']['remotes'][0] }
     after { conn.server(session_name) }
+    before { session[:path] = 'hoge' }
 
     it do
-      allow(EM).to receive(:bind_connect).and_return(EM::ProxyServer::Backend.new({}))
-      expect_any_instance_of(EM::ProxyServer::Backend).to receive(:comm_inactivity_timeout=)
+      expect(conn).to receive(:remote).with('hoge').and_return(env.config['es']['remotes'][0])
+      expect(EM).to receive(:bind_connect).with(nil, nil, remote['host'], remote['port'], EventMachine::ProxyServer::Backend, false).and_return(EM::ProxyServer::Backend.new({}))
+      expect_any_instance_of(EM::ProxyServer::Backend).to receive(:comm_inactivity_timeout=).with(15)
     end
   end
 
+  describe '#remote' do
+    let(:remote) { conn.remote(path) }
+    context 'when receiving path will be matched' do
+      let(:path) { '/fuga/fugafuga.html' }
+      
+      it { expect(remote).to eq(env.config['es']['remotes'][1]) }
+    end
+
+    context 'when receiving path will not be matched' do
+      let(:path) { '/foo/bar.html' }
+      
+      it { expect(remote).to eq(env.config['es']['remotes'][0]) }
+    end
+  end
 
   describe '#on_data' do
     let(:request) { "GET / HTTP/1.1\r\n\r\n" }

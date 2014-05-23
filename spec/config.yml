@@ -6,9 +6,13 @@ proxy:
 # output: 'log/kusabana.log' 
 # pid: 'log/kusabana.pid'
 es:
-  remote:
-    host: 'localhost'
-    port: 9200
+  remotes:
+    - path: '/hoge'
+      host: 'hoge.com'
+      port: 9201
+    - path: '/fuga'
+      host: 'fuga.com'
+      port: 9200
 # output:
 #   index: 'kusabana-log-1'
 #   hosts:
@@ -16,3 +20,4 @@ es:
 #     port: 9200
 cache:
   url: 'localhost:11211'
+  key_prefix: ''
