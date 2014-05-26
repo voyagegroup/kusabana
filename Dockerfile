@@ -26,6 +26,8 @@ RUN mv Gemfile.lock Gemfile.lock.tmp
 ADD . /kusabana/
 RUN mv Gemfile.lock.tmp Gemfile.lock
 
+ADD ./karakuri.yml /karakuri.yml
+
 EXPOSE 9292
 ENTRYPOINT ["bundle", "exec", "rake"]
 CMD ["start"]
