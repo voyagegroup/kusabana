@@ -1,2 +1,4 @@
-main:
-  command: test
+tasks:
+  start: rake start
+  test: rspec
+default: start
