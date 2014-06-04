@@ -24,6 +24,7 @@ RUN bundle install
 # Add any other file
 RUN mv Gemfile.lock Gemfile.lock.tmp
 ADD . /kusabana/
+RUN rm -rf .bundle
 RUN mv Gemfile.lock.tmp Gemfile.lock
 
 EXPOSE 9292
