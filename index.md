@@ -19,18 +19,18 @@ Why
 ---
 
 Elasticsearch + Kibana are becoming typical solution for data mining.  
-However, it is said that they have some performance probrems.  
+However, it is said that they have some performance problems.
 Why?
 
-I think, there are some probrems about behavior of Kibana.  
+I think, there are some problems about behavior of Kibana.
 For example, Kibana make request to ES on almost clicking.  
 Futhermore, Elasticsearch doesn't have a mechanism of 'query cache' but for 'filter cache'.
 
-These probrems are seemed to be resolve by proxy that have simple caching system.  
+These problems are seemed to be resolve by proxy that have simple caching system.
 However, The query produced by kibana is variable by time, path or dashboard's environment.  
 This make us have to create more functional caching.
 
-**Kusabana** is a solution implemented for this probrem.  
+**Kusabana** is a solution implemented for this problem.
 Needless to say caching, **Kusabana** can store log of itself to Elasticsearch.  
 This will make you able to make configration easier.
 
