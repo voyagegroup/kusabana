@@ -3,17 +3,24 @@ require 'eventmachine'
 
 module Kusabana
   class Proxy
+    attr_reader :rules, :global_rule, :config
+
     def initialize(config)
       @config = config
+      @global_rule = nil
       @rules = {}
     end
 
-    def add_rule(path, rule)
+    def set_global_rule(rule)
+      @global_rule = rule
+    end
+
+    def set_rule(path, rule)
       @rules[path] = rule
     end
 
     def start
-      env = Kusabana::Environment.new(@rules, @config)
+      env = Kusabana::Environment.new(self)
       begin
         Process.daemon(true, true) if env.config['proxy']['daemonize']
         EM.epoll
