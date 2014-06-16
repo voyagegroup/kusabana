@@ -16,13 +16,13 @@ describe Kusabana::Rule do
 
   describe '#match' do
     context 'when receive with arguments will be matched' do
-      it { expect(rule.match(method, '/hoge/fuga')).to be_true }
+      it { expect(rule.match(method, '/hoge/fuga')).to be_truthy }
     end
 
     context 'when receive with arguments will be not matched' do
       context 'because of method' do
         let(:path) { '/hoge/fuga' }
-        it { expect(rule.match('POST', path)).to be_false }
+        it { expect(rule.match('POST', path)).to be_falsey }
 
         it do
           rule.match('POST', path)
@@ -32,7 +32,7 @@ describe Kusabana::Rule do
 
       context 'because of path' do
         let(:path) { '/fuga/hoge' }
-        it { expect(rule.match(method, path)).to be_false }
+        it { expect(rule.match(method, path)).to be_falsey }
 
         it do
           rule.match(method, path)

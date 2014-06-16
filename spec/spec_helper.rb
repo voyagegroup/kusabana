@@ -10,5 +10,5 @@ def config
 end
 
 RSpec.configure do |c|
-  c.before { allow(EM).to receive(:defer).and_return{|op, cb| cb.call(op.call) } }
+  c.before(:each) { allow(EM).to receive(:defer) {|op, cb| cb.call(op.call) } }
 end

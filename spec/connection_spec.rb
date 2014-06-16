@@ -2,8 +2,8 @@
 require 'spec_helper'
 
 describe Kusabana::Connection do
-  let(:env) { Kusabana::Environment.new(rules, config) }
-  let(:rules) { [] }
+  let(:proxy) { Kusabana::Proxy.new(config) }
+  let(:env) { Kusabana::Environment.new(proxy) }
   let(:conn) { Kusabana::Connection.new({}, env: env) }
   let(:session) { {} }
   let(:session_name) { UUID::generate :compact }
