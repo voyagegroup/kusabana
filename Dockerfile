@@ -19,7 +19,7 @@ RUN gem install bundle
 ADD ./Gemfile /kusabana/Gemfile
 ADD ./kusabana.gemspec /kusabana/kusabana.gemspec
 ADD ./lib/kusabana/version.rb /kusabana/lib/kusabana/version.rb
-RUN bundle install
+RUN bundle install -j 4
 
 # Add any other file
 RUN mv Gemfile.lock Gemfile.lock.tmp

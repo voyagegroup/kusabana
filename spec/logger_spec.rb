@@ -2,8 +2,8 @@
 require 'spec_helper'
 
 describe Kusabana::Logger do
-  let(:env) { Kusabana::Environment.new(rules, config) }
-  let(:rules) { [] }
+  let(:proxy) { Kusabana::Proxy.new(config) }
+  let(:env) { Kusabana::Environment.new(proxy) }
   let(:logger) { Kusabana::Logger.new(STDOUT, 1, env) }
 
   describe '#req' do

@@ -25,7 +25,5 @@ rule << Kusabana::Rule.new('GET', /^\/\S+\/_mapping$/, 300)
 rule << Kusabana::Rule.new('GET', /^\/\S+\/_aliases(\?.+)?$/, 300)
 
 proxy = Kusabana::Proxy.new(config)
-proxy.add_rule('/01a', rule)
-proxy.add_rule('/01b', rule)
-proxy.add_rule('/01c', rule)
+proxy.set_global_rule(rule)
 proxy.start

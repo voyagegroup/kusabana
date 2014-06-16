@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'uuid', '~> 2.3'
   s.add_dependency 'elasticsearch', '~> 1.0'
 
-  s.add_development_dependency 'rspec', '~> 2.14'
+  s.add_development_dependency 'rspec', '~> 3.0'
   s.add_development_dependency 'webmock', '~> 1.17'
 
   s.files = `git ls-files`.split("\n")

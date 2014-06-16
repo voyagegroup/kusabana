@@ -2,13 +2,14 @@
 
 module Kusabana
   class Environment
-    attr_reader :rules, :logger, :cache, :es_source, :es_output, :config
+    attr_reader :rules, :global_rule, :logger, :cache, :es_source, :es_output, :config
     attr_reader :sessions
-    def initialize(rules, config)
-      @config = config
-      @rules = rules
-      @cache = Kusabana::Cache.new(config['cache']['url'])
-      @logger = Kusabana::Logger.new(config['proxy']['output'] || STDOUT, 7, self)
+    def initialize(proxy)
+      @config = proxy.config
+      @rules = proxy.rules
+      @global_rule = proxy.global_rule
+      @cache = Kusabana::Cache.new(@config['cache']['url'])
+      @logger = Kusabana::Logger.new(@config['proxy']['output'] || STDOUT, 7, self)
       @sessions = {}
     end
 

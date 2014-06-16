@@ -2,8 +2,8 @@
 require 'spec_helper'
 
 describe Kusabana::Environment do
-  let(:env) { Kusabana::Environment.new(rules, config) }
-  let(:rules) { [] }
+  let(:proxy) { Kusabana::Proxy.new(config) }
+  let(:env) { Kusabana::Environment.new(proxy) }
   let(:session) { {} }
   let(:session_name) { UUID::generate :compact }
   before { env.sessions[session_name] = session }

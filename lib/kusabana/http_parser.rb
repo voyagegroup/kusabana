@@ -45,7 +45,7 @@ module Kusabana
         remote_path = request_url.gsub("#{remote['path']}/", '/')
 
         body, match = -> do
-          if rules = @env.rules[remote['path']]
+          if rules = @env.global_rule || @env.rules[remote['path']]
             rules.each do |rule|
               if rule.match(http_method, remote_path)
                 @env.sessions[session_name].merge!(rule: rule, cache: true)
