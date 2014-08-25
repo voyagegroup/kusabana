@@ -134,7 +134,7 @@ module Kusabana
         if msg[:cache] == 'store'
           @logger.stats << {key: msg[:key], from: timestamp, to: timestamp+msg[:expire], took: msg[:took], expire: msg[:expire]}
         end
-        raws = msg.inject([]) { |h, (key, value)| h << "#{key}:#{value}"; h }
+        raws = msg.inject([]) { |h, (key, value)| h << "#{key}:#{value.to_s.force_encoding('utf-8')}"; h }
         "#{raws.join("\t")}\n"
       end 
     end
