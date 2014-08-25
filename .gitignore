@@ -5,3 +5,4 @@ log
 !.git
 .elasticbeanstalk/
 docker.id
+/vendor
