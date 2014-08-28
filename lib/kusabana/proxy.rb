@@ -30,7 +30,9 @@ module Kusabana
           trap("INT") { stop }
 
           EM::start_server(env.config['proxy']['host'], env.config['proxy']['port'], Kusabana::Connection, env: env)
-          EM.add_timer(300) { env.logger.interval }
+          if env.logger.es
+            EM.add_timer(300) { env.logger.interval }
+          end
           open(env.config['proxy']['pid'] || 'kusabana.pid', 'w') {|f| f << Process.pid } if env.config['proxy']['daemonize']
         end
       rescue => e

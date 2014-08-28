@@ -9,6 +9,7 @@ require 'thread'
 module Kusabana
   class Logger < ::Logger
     attr_accessor :stats, :bulk
+    attr_reader :es
     def initialize(output, splits, env) 
       super(output, splits)
       @es, @index = [nil, nil]
@@ -20,7 +21,7 @@ module Kusabana
         @es = Elasticsearch::Client.new(hosts: hosts)
         @index = env.config['es']['output']['index']
       end
-      @formatter = LogFormatter.new(self, @es, @index)
+      @formatter = LogFormatter.new(self, @index)
       @stats = Queue.new
       @bulk = Queue.new
     end
@@ -120,15 +121,14 @@ module Kusabana
     end
     
     class LogFormatter < ::Logger::Formatter
-      def initialize(logger, es, index)
+      def initialize(logger, index)
         @logger = logger
-        @es = es
         @index = index
       end
 
       def call(severity, timestamp, progname, msg)
         msg[:@timestamp] = timestamp.to_datetime.to_s
-        if @es && msg.key?(:type)
+        if @logger.es && msg.key?(:type)
           @logger.bulk << {index: {_type: msg[:type], data: msg.reject{|k, v| k == :type }}}
         end
         if msg[:cache] == 'store'
