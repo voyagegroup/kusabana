@@ -1,13 +1,7 @@
-FROM ubuntu:trusty
+FROM ruby
 
 RUN apt-get update
 RUN apt-get upgrade -y
-RUN apt-get install -y software-properties-common
-
-# Install ruby-2.1
-RUN add-apt-repository -y ppa:brightbox/ruby-ng
-RUN apt-get update
-RUN apt-get install -y ruby2.1
 
 # Install kusabana
 RUN mkdir /kusabana
