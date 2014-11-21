@@ -1,7 +1,6 @@
 Gemfile.lock
 log
 /config.yml
-.*
 !.git
 .elasticbeanstalk/
 docker.id
