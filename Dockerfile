@@ -2,13 +2,13 @@ FROM ruby
 
 RUN apt-get update
 RUN apt-get upgrade -y
+RUN apt-get install libsasl2-dev
 
 # Install kusabana
 RUN mkdir /kusabana
 WORKDIR /kusabana
 
 # Add Gemfile and run bundle install
-RUN apt-get install -y libsasl2-dev git build-essential ruby2.1-dev
 RUN gem install bundle
 ADD ./Gemfile /kusabana/Gemfile
 ADD ./kusabana.gemspec /kusabana/kusabana.gemspec
